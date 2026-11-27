@@ -54,7 +54,10 @@ public sealed partial class RoomWorkshopWindow
             WorkshopUI.Label(content,dataEntry.Title+" 기반 · 새 콘텐츠 이름",12,50,610,25,12);
             var title=Input("새 콘텐츠 이름","",12,91,390,30);
             Btn("만들기",12,155,100,25,()=>{
-                string id=ProjectContentVariants.Create(dataEntry,title.text);
+                // 새 정의는 상점에 자동 가입하지 않는다(autoJoin:false). 예전처럼 원본이 든 상점 목록에 함께 넣는다. 세이브 해석 목록은 자동이다.
+                var join=ProjectParameterBindings.Registries().OfType<ShopRegistrySO>().SelectMany(shop=>ProjectContentVariants.Lists(shop)
+                    .Where(l=>l.list?.Contains(dataEntry.source)==true).Select(l=>((ScriptableObject)shop,l.field))).ToArray();
+                string id=ProjectContentVariants.Create(dataEntry,title.text,join:join);
                 creatingContent=false;OpenParameters();
                 SelectContent(dataCatalog.Single(e=>e.id==id));
                 Say("DATA에 생성했습니다. 원본과 같은 획득 목록에 등록됩니다.");

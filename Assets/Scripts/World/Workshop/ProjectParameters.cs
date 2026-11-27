@@ -237,19 +237,34 @@ public static class ProjectParameters
         files.TryGetValue("parameters.json",out var json)?JObject.Parse(json):new JObject();
     internal static Dictionary<string,string> Snapshot(string document)=>
         ProjectContentStore.WithDocument(document,(folder,_)=>ProjectContentStore.Read(folder));
-    internal static Dictionary<string,string> Save(string document,ScriptableObject target,Dictionary<string,string> basis,JObject edits)
+    // files: parameters.json 밖 초안 파일(definition.json·LISTS·MEMBERS·removed.json). null이면 basis의 것을 그대로 둔다. 호출자는 DraftStore.Save 하나다.
+    // 새 원소의 값 경로는 구조를 적용해야 생기므로 병합 결과의 구조를 먼저 적용하고 키를 검사한다. 실패하면 basis 상태로 되돌린다.
+    internal static Dictionary<string,string> Save(ProjectParameterBindings.Entry entry,Dictionary<string,string> basis,JObject edits,Dictionary<string,string> files=null)
     {
-        var next=new Dictionary<string,string>(basis);
-        if(edits.Count==0) next.Remove("parameters.json"); else next["parameters.json"]=ProjectContentStore.Json(edits);
-        var saved=ProjectContentStore.Save(document,basis,next,merged=>{
-            RequireKeys(target,document);
-            var fields=Fields(target).ToDictionary(f=>f.path);
-            foreach(var p in Values(merged))
-            {
-                if(!fields.TryGetValue(p.Key,out var f)) throw new InvalidDataException("이 판에 없는 항목 "+p.Key+" · 제작판을 갱신하세요");
-                f.Parse((string)p.Value);
-            }
-        });
-        Apply(target,Values(saved)); return saved;
+        string document=entry.Document; var target=entry.source;
+        var next=files!=null ? new Dictionary<string,string>(files,StringComparer.Ordinal) :
+            basis.Where(p=>p.Key!="parameters.json").ToDictionary(p=>p.Key,p=>p.Value,StringComparer.Ordinal);
+        next.Remove("parameters.json");
+        if(edits.Count>0) next["parameters.json"]=ProjectContentStore.Json(edits);
+        Dictionary<string,string> saved;
+        try
+        {
+            saved=ProjectContentStore.Save(document,basis,next,merged=>{
+                ProjectStructure.Validate(entry,merged,ProjectParameterBindings.Source,ProjectParameterBindings.StartingItems());
+                ProjectStructure.Apply(entry,merged);
+                RequireKeys(target,document);
+                var fields=Fields(target).ToDictionary(f=>f.path);
+                foreach(var p in Values(merged))
+                {
+                    if(!fields.TryGetValue(p.Key,out var f)) throw new InvalidDataException("이 판에 없는 항목 "+p.Key+" · 제작판을 갱신하세요");
+                    f.Parse((string)p.Value);
+                }
+            });
+        }
+        catch{ ProjectStructure.Apply(entry,basis); Apply(target,Values(basis)); throw; }
+        ProjectStructure.Apply(entry,saved);
+        Apply(target,Values(saved));
+        ProjectParameterBindings.Rebuild();
+        return saved;
     }
 }

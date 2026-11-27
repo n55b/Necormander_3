@@ -43,8 +43,15 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         foreach(var e in entries)Load(e);
         foreach(var e in ProjectContentVariants.Entries)Load(e);
         // 항목이 레지스트리보다 먼저 바인딩될 수 있어 가입·삭제는 모든 문서를 적용한 뒤 한 번에 반영한다.
-        ProjectStructure.Rebuild(byId.Values.Select(e=>e.source).Where(s=>s is GrowthRegistrySO or ShopRegistrySO).Distinct().ToArray());
+        Rebuild();
     }
+    // 바인딩된 레지스트리. 초안 적용(DraftStore)과 저장도 구조를 바꾼 뒤 이 목록을 다시 계산한다.
+    internal static ScriptableObject[] Registries()=>byId.Values.Select(e=>e.source).Where(s=>s is GrowthRegistrySO or ShopRegistrySO).Distinct().ToArray();
+    internal static void Rebuild()=>ProjectStructure.Rebuild(Registries());
+    internal static ScriptableObject Source(string id)=>id!=null && byId.TryGetValue(id,out var e) ? e.source : null;
+    // 실행 중 저장 검증의 시작 아이템: 살아 있는 Growth 값(DATA 적용 뒤).
+    internal static HashSet<string> StartingItems()=>new(Registries().OfType<GrowthRegistrySO>().Where(g=>g.startingItem!=null)
+        .Select(g=>Reference(g.startingItem)),StringComparer.Ordinal);
 
     private void Awake()
     {

@@ -45,6 +45,9 @@ public static class ProjectDataBake
             "\n"+string.Join("\n",lines.Take(10))+(lines.Length>10 ? "\n…" : "");
     }
 
+    // 편집기 검사(ProjectDataBakeCheck)가 임시 Git 저장소로 영구 삭제 조건을 확인한다. 본체는 ProjectContentVariants.PurgeBlocker.
+    public static string PurgeBlocker(string id,string checkout)=>ProjectContentVariants.PurgeBlocker(id,checkout);
+
     public static List<Item> Plan()
     {
         var items=new List<Item>();

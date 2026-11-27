@@ -52,17 +52,77 @@ internal static class ProjectContentVariants
         }
         catch(Exception e) when(ProjectContentStore.IsDataError(e)){ error=e; return false; }
     }
-    internal static string Create(Entry source,string title)
+    // 변형도 복제한다. 그 변형의 template·parameters·LISTS를 물려받는다.
+    internal static bool CanDuplicate(Entry source)=>CanCreate(source) || source.group==Folder && live.ContainsKey(source.id);
+    // 새 정의는 autoJoin:false라 세이브 해석 목록(Growth)에만 자동 가입한다. 상점 진열은 join(MEMBERS), 보상 등장은 reward(ItemSO)로 정한다.
+    // blank: 이 타입의 기본값을 모든 편집 가능 필드에 명시 키로 쓰고, 원본의 모든 목록 원소에 삭제 표시를 쓴다(빈 아이템에서 시작).
+    internal static string Create(Entry source,string title,bool blank=false,bool? reward=null,(ScriptableObject registry,string field)[] join=null)
     {
-        title=title.Trim();
-        if(!CanCreate(source)||title.Length is 0 or >64)throw new InvalidDataException("콘텐츠 이름을 1~64자로 입력하세요.");
-        string id=Guid.NewGuid().ToString("N");
-        var files=new Dictionary<string,string>{["definition.json"]=ProjectContentStore.Json(new JObject{["template"]=source.id,["title"]=title})};
-        var values=ProjectParameters.Values(ProjectParameters.Snapshot(source.Document));
-        if(ProjectParameters.DisplayNameField(source.source) is string name) values.Remove(name);   // 변형의 이름은 title
-        if(values.Count>0)files["parameters.json"]=ProjectContentStore.Json(values);
-        ProjectContentStore.Save(Folder+"/"+id,new(),files,_=>{});
-        return id;
+        title=title?.Trim() ?? "";
+        if(!CanDuplicate(source)||title.Length is 0 or >64)throw new InvalidDataException("콘텐츠 이름을 1~64자로 입력하세요.");
+        var snapshot=ProjectParameters.Snapshot(source.Document);
+        string template=source.group==Folder ? (string)JObject.Parse(snapshot["definition.json"])["template"] : source.id;
+        var files=snapshot.Where(p=>p.Key!="definition.json" && p.Key!=ProjectStructure.RemovedFile && !p.Key.StartsWith("MEMBERS/",StringComparison.Ordinal))
+            .ToDictionary(p=>p.Key,p=>p.Value,StringComparer.Ordinal);
+        string name=ProjectParameters.DisplayNameField(source.source);
+        var values=ProjectParameters.Values(files);
+        if(blank)
+        {
+            values=new JObject();
+            var probe=ScriptableObject.CreateInstance(source.source.GetType());
+            try
+            {
+                foreach(var f in ProjectParameters.Fields(probe))
+                    if(!f.readOnly && f.path!=name && !f.path.Split('/').Skip(1).Any(p=>p.StartsWith("@",StringComparison.Ordinal) || p.All(char.IsDigit)))
+                        values[f.path]=f.Text();
+            }
+            finally{ UnityEngine.Object.DestroyImmediate(probe); }
+            foreach(string key in files.Keys.Where(k=>k.StartsWith("LISTS/",StringComparison.Ordinal)).ToArray()) files.Remove(key);
+            // 세션의 원본은 DATA 새 원소까지 들고 있다. 지금 원소와 원래 원소 모두에 삭제 표시를 쓴다(없는 id는 적용에서 무시된다).
+            var origin=ProjectParameterBindings.Source(template) ?? source.source;
+            foreach(var (field,id) in ProjectStructure.Elements(origin)) files["LISTS/"+field+"/"+id+".json"]=ProjectContentStore.Json(new JObject{["removed"]=true});
+        }
+        if(name!=null) values.Remove(name);   // 변형의 이름은 title
+        if(reward!=null && source.source is ItemSO) values[nameof(ItemSO.availableAsReward)]=reward.Value.ToString();
+        if(values.Count>0) files["parameters.json"]=ProjectContentStore.Json(values); else files.Remove("parameters.json");
+        foreach(var (registry,field) in join ?? Array.Empty<(ScriptableObject,string)>())
+            files["MEMBERS/"+ProjectParameterBindings.Reference(registry)+"/"+field+".json"]=ProjectContentStore.Json(new JObject{["included"]=true});
+        files["definition.json"]=ProjectContentStore.Json(new JObject{["template"]=template,["title"]=title,["autoJoin"]=false});
+        string created=Guid.NewGuid().ToString("N");
+        ProjectContentStore.Save(Folder+"/"+created,new(),files,_=>{});
+        return created;
+    }
+    internal static void Retitle(Entry entry,string title){ entry.title=title; Name(entry.source,title); }
+    // 영구 삭제는 Git에 한 번도 커밋되지 않은 새 콘텐츠만(D12). null이면 지울 수 있다.
+    internal static string PurgeBlocker(string id,string checkout=null)
+    {
+        checkout??=ProjectDataConnection.Checkout;
+        string folder="DATA/"+Folder+"/"+id;
+        string status,tracked;
+        try
+        {
+            if(checkout==null) throw new IOException("연결된 프로젝트가 없습니다.");
+            status=ProjectGitReview.Git("status --porcelain --untracked-files=all -- "+folder,checkout);
+            tracked=ProjectGitReview.Git("ls-files -- "+folder,checkout);
+        }
+        catch(Exception e) when(e is IOException or System.ComponentModel.Win32Exception or InvalidOperationException)
+        { return "Git 상태를 읽지 못했습니다. Git 체크아웃에서 지우세요. "+e.Message.Trim(); }
+        var lines=status.Split('\n').Select(l=>l.TrimEnd('\r')).Where(l=>l.Length>0).ToArray();
+        if(lines.Length==0 && tracked.Trim().Length==0) return "지울 파일이 없습니다.";
+        if(tracked.Trim().Length>0 || lines.Any(l=>!l.StartsWith("??",StringComparison.Ordinal)))
+            return "Git에 올린 적 있는 새 콘텐츠는 동료의 세이브가 들고 있을 수 있어 삭제 표시만 합니다.";
+        return null;
+    }
+    // 폴더를 지우고 체크아웃을 다시 묶는다. 호출한 화면이 DraftStore.Forget과 카탈로그 다시 읽기를 한다(R21).
+    internal static void Purge(Entry entry)
+    {
+        if(entry.group!=Folder) throw new InvalidOperationException("새 콘텐츠만 파일까지 지웁니다.");
+        if(PurgeBlocker(entry.id) is string reason) throw new InvalidOperationException(reason);
+        string document=Folder+"/"+entry.id;
+        ProjectContentStore.Save(document,ProjectParameters.Snapshot(document),new(),_=>{});
+        string folder=Path.Combine(ProjectContentStore.Root,document);
+        if(Directory.Exists(folder) && !Directory.EnumerateFiles(folder,"*",SearchOption.AllDirectories).Any()) Directory.Delete(folder,true);
+        ProjectParameterBindings.ReloadCheckout();
     }
     internal static void Bind(Entry[] sources)
     {

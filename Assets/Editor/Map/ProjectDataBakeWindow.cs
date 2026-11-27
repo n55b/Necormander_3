@@ -196,6 +196,19 @@ public static class ProjectDataBakeCheck
             Git(repo, "add -A");
             Git(repo, "-c user.name=qa -c user.email=qa@example.invalid commit -q -m qa");
             Require(ProjectDataBake.GitBlocker(repo) == null, "committed DATA is not blocked");
+            // 영구 삭제(D12): Git에 한 번도 올리지 않은 새 콘텐츠 폴더만 지울 수 있다.
+            string id = System.Guid.NewGuid().ToString("N");
+            string variant = Path.Combine(repo, "DATA", "CATALOG", "VARIANTS", id);
+            Require(ProjectDataBake.PurgeBlocker(id, repo) != null, "a missing new content folder is not purged");
+            Directory.CreateDirectory(Path.Combine(variant, "LISTS", "effects"));
+            File.WriteAllText(Path.Combine(variant, "definition.json"), "{}\n");
+            File.WriteAllText(Path.Combine(variant, "LISTS", "effects", "0123456789ab.json"), "{}\n");
+            Require(ProjectDataBake.PurgeBlocker(id, repo) == null, "untracked new content can be purged");
+            Git(repo, "add -A");
+            Git(repo, "-c user.name=qa -c user.email=qa@example.invalid commit -q -m qa2");
+            Require(ProjectDataBake.PurgeBlocker(id, repo)?.Contains("삭제 표시만") == true, "committed new content is only marked removed");
+            File.WriteAllText(Path.Combine(variant, "removed.json"), "{}\n");
+            Require(ProjectDataBake.PurgeBlocker(id, repo)?.Contains("삭제 표시만") == true, "new files beside committed ones do not unlock purge");
         }
         finally
         {

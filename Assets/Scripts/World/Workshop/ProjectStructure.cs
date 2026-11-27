@@ -187,18 +187,91 @@ internal static class ProjectStructure
     }
     private static string Key(object value)=>value?.GetType().GetField("id")?.GetValue(value) as string;
     // SO의 최상위 List<T> 필드만. 원소 타입에 [WorkshopKey] id가 있어야 한다.
+    private static bool IsKeyedList(FieldInfo f,out Type element)
+    {
+        element=f!=null && f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition()==typeof(List<>) ? f.FieldType.GetGenericArguments()[0] : null;
+        var key=element?.GetField("id");
+        return element!=null && !f.IsInitOnly && !f.IsNotSerialized && (f.IsPublic || f.IsDefined(typeof(SerializeField)) || f.IsDefined(typeof(SerializeReference))) &&
+            key!=null && key.FieldType==typeof(string) && key.IsDefined(typeof(WorkshopKeyAttribute));
+    }
     private static FieldInfo ListField(Type owner,string name,out Type element,string document)
     {
         FieldInfo f=null;
         for(var t=owner;t!=null && f==null;t=t.BaseType)
             f=t.GetField(name,BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.DeclaredOnly);
-        element=f!=null && f.FieldType.IsGenericType && f.FieldType.GetGenericTypeDefinition()==typeof(List<>) ? f.FieldType.GetGenericArguments()[0] : null;
-        var key=element?.GetField("id");
-        if(element==null || f.IsInitOnly || f.IsNotSerialized || !(f.IsPublic || f.IsDefined(typeof(SerializeField)) || f.IsDefined(typeof(SerializeReference))) ||
-            key==null || key.FieldType!=typeof(string) || !key.IsDefined(typeof(WorkshopKeyAttribute)))
-            throw new InvalidDataException(document+"/LISTS/"+name+" · 원소 키가 있는 목록 필드만 바꿀 수 있습니다");
+        if(!IsKeyedList(f,out element)) throw new InvalidDataException(document+"/LISTS/"+name+" · 원소 키가 있는 목록 필드만 바꿀 수 있습니다");
         return f;
     }
+
+    // ---- 초안 편집 도우미: files·values만 바꾼다. 살아 있는 SO에 적용하는 일은 DraftStore가 한다.
+    private static string ListPath(string list,string id)=>"LISTS/"+list+"/"+id+".json";
+    private static IList Current(ScriptableObject target,string list)=>(IList)ListField(target.GetType(),list,out _,target.name).GetValue(target);
+
+    // 새 원소 하나. order는 지금 목록 끝(같은 목록의 기존 order보다 크게). 원래 원소에는 order를 쓰지 않는다(기본값이 인덱스).
+    internal static string AddElement(Dictionary<string,string> files,ScriptableObject target,string list,Type type)
+    {
+        ListField(target.GetType(),list,out var element,target.name);
+        Element(element,type.FullName,target.name+"/LISTS/"+list);
+        string id=Guid.NewGuid().ToString("N").Substring(0,12);
+        int order=Current(target,list)?.Count ?? 0;
+        foreach(var pair in files.Where(p=>p.Key.StartsWith("LISTS/"+list+"/",StringComparison.Ordinal)))
+            if(Read(pair.Value,pair.Key).order is int o) order=Math.Max(order,o+1);
+        files[ListPath(list,id)]=ProjectContentStore.Json(new JObject{["type"]=type.FullName,["order"]=order});
+        return id;
+    }
+    // 지금 살아 있는 목록 순서에서 이웃과 맞바꾸고 모든 원소에 order를 쓴다. 새 원소 파일은 type을 그대로 둔다.
+    internal static void MoveElement(Dictionary<string,string> files,ScriptableObject target,string list,string id,int delta)
+    {
+        var ids=(Current(target,list)?.Cast<object>() ?? Enumerable.Empty<object>()).Select(Key).ToList();
+        if(ids.Any(k=>k==null)) throw new InvalidDataException(target.name+"/"+list+" · 목록 키가 비었습니다. 에셋을 열어 다시 저장하세요");
+        int from=ids.IndexOf(id),to=from+delta;
+        if(from<0 || to<0 || to>=ids.Count) return;
+        (ids[from],ids[to])=(ids[to],ids[from]);
+        for(int i=0;i<ids.Count;i++)
+        {
+            string path=ListPath(list,ids[i]);
+            var data=files.TryGetValue(path,out var json) ? JObject.Parse(json) : new JObject();
+            data["order"]=i;
+            files[path]=ProjectContentStore.Json(data);
+        }
+    }
+    // 새 원소는 파일을 지우고, 원래 원소는 삭제 표시를 쓴다. 두 경우 모두 그 원소의 값 키를 지운다.
+    internal static void RemoveElement(Dictionary<string,string> files,JObject values,ScriptableObject target,string list,string id)
+    {
+        ListField(target.GetType(),list,out _,target.name);
+        string path=ListPath(list,id);
+        if(files.TryGetValue(path,out var json) && Read(json,path).type!=null) files.Remove(path);
+        else files[path]=ProjectContentStore.Json(new JObject{["removed"]=true});
+        string key=list+"/@"+Uri.EscapeDataString(id);
+        foreach(string k in values.Properties().Select(p=>p.Name).Where(k=>k==key || k.StartsWith(key+"/",StringComparison.Ordinal)).ToArray()) values.Remove(k);
+    }
+    // 원래 상태(원래 목록에 있었는지, 변형이면 자동 가입)와 같으면 파일을 두지 않는다.
+    internal static void SetMember(Dictionary<string,string> files,ScriptableObject target,ScriptableObject registry,string field,bool included)
+    {
+        if(registry is not ShopRegistrySO) throw new InvalidOperationException("세이브 해석 목록은 가입을 바꾸지 않습니다. 삭제 표시를 쓰세요");
+        var list=Array.Find(ProjectContentVariants.Lists(registry),l=>l.field==field).list ?? throw new InvalidOperationException("레지스트리에 없는 목록입니다: "+field);
+        string rid=ProjectParameterBindings.Reference(registry);
+        if(!Guid.TryParseExact(rid,"N",out _)) throw new InvalidOperationException("바인딩되지 않은 레지스트리입니다: "+registry.name);
+        bool original=Original(list).Contains(target) || implicitJoins.Contains((target,registry,field));
+        string path="MEMBERS/"+rid+"/"+field+".json";
+        if(included==original) files.Remove(path); else files[path]=ProjectContentStore.Json(new JObject{["included"]=included});
+    }
+    // 키가 있는 최상위 목록마다 지금 원소와 LISTS 이전 원래 원소의 id(빈 아이템의 삭제 표시용, R27).
+    internal static IEnumerable<(string field,string id)> Elements(ScriptableObject owner)
+    {
+        for(var t=owner.GetType();t!=null && t!=typeof(ScriptableObject);t=t.BaseType)
+            foreach(var f in t.GetFields(BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.DeclaredOnly))
+            {
+                if(!IsKeyedList(f,out _)) continue;
+                var items=((IList)f.GetValue(owner))?.Cast<object>() ?? Enumerable.Empty<object>();
+                if(listOriginals.TryGetValue((owner,f.Name),out var held) && held.list!=null) items=items.Concat(held.list.Cast<object>());
+                foreach(string id in items.Select(Key).Where(k=>!string.IsNullOrEmpty(k)).Distinct(StringComparer.Ordinal)) yield return (f.Name,id);
+            }
+    }
+    // 바인딩된 엔트리의 참조 필드 중 asset을 가리키는 것. 살아 있는 SO라 에셋 배선과 DATA 덮어쓰기를 함께 잡는다.
+    internal static IEnumerable<(string owner,string label,string document,string path)> References(ScriptableObject asset,IEnumerable<Entry> catalog)=>
+        catalog.Where(e=>e.source!=null && e.source!=asset).SelectMany(e=>ProjectParameters.Fields(e.source,labels:true)
+            .Where(f=>f.IsReference && ReferenceEquals(f.read(),asset)).Select(f=>(e.Title,f.label,e.Document,f.path)));
     private static Type Element(Type element,string name,string where)
     {
         var type=element.Assembly.GetType(name);
