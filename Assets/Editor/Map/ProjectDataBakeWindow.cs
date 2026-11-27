@@ -179,7 +179,81 @@ public static class ProjectDataBakeCheck
                 Require(!Directory.Exists(Path.Combine(ProjectContentStore.Root, document)), "baked document removed " + document);
             Require(!ProjectDataBake.Plan().Any(i => documents.Contains(i.document)), "nothing left to bake");
         }
+        Structure();
         Debug.Log("[ProjectDataBakeCheck] PASS");
+    }
+
+    // 구조 문서 굽기: (a) 원본의 LISTS 새 원소·원소 삭제·MEMBERS 끔, (b)(c) autoJoin:false 변형의 가입, (d) 삭제 표시 변형은 고를 수 없음,
+    // (e) 삭제 표시 원본은 값만 굽고 removed.json이 남아 세이브 해석만 된다. R16 가드(구조를 굽는 원본의 변형은 함께)도 본다.
+    private static void Structure()
+    {
+        using var fixture = new ProjectDataBakeFixture();
+        var growth = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
+        var shop = AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset");
+        var picks = growth.items.Where(i => i != null && i != growth.startingItem && shop.itemPool.Contains(i)).Distinct().ToList();
+        var a = picks.FirstOrDefault(i => i.effects.Count > 0 && !string.IsNullOrEmpty(i.effects[0].id));
+        Require(a != null, "an item with a keyed effect");
+        picks.Remove(a);
+        Require(picks.Count >= 2, "two more shop items");
+        ItemSO b = picks[0], c = picks[1];
+        fixture.Keep(growth, shop, a, b, c);
+        string shopGuid = ProjectDataBakeFixture.Guid(shop);
+        JObject Removed() => new JObject { ["removed"] = true };
+
+        // (a) 새 효과 하나(값은 parameters), 첫 원래 효과 삭제, 상점 진열 끔
+        int effects = a.effects.Count;
+        string gone = a.effects[0].id, added = System.Guid.NewGuid().ToString("N").Substring(0, 12);
+        string docA = ProjectDataBakeFixture.Document(a);
+        fixture.Write(docA, "LISTS/effects/" + added + ".json", new JObject { ["type"] = nameof(ItemRoomEntryShieldEffect), ["order"] = effects });
+        fixture.Write(docA, "LISTS/effects/" + gone + ".json", Removed());
+        fixture.Write(docA, "MEMBERS/" + shopGuid + "/itemPool.json", new JObject { ["included"] = false });
+        fixture.Parameters(a, new JObject { ["effects/@" + added + "/amount"] = "9" });
+        string inherit = fixture.Variant(a, "QA 구조 물려받음");                         // 옛 정의(autoJoin 없음): A와 함께 구워야 한다
+        string dropped = fixture.Variant(a, "QA 구조 삭제한 새 아이템", autoJoin: false); // (d)
+        fixture.Write(ProjectDataBakeFixture.Variants + "/" + dropped, "removed.json", Removed());
+        // (b)(c) autoJoin:false 변형: 상점 켬 / 가입 파일 없음
+        string joined = fixture.Variant(b, "QA 구조 상점 켬", autoJoin: false);
+        fixture.Write(ProjectDataBakeFixture.Variants + "/" + joined, "MEMBERS/" + shopGuid + "/itemPool.json", new JObject { ["included"] = true });
+        string saveOnly = fixture.Variant(b, "QA 구조 세이브만", autoJoin: false);
+        // (e) 삭제 표시 원본 + 값
+        int rawC = c.maxStack;
+        string docC = fixture.Write(ProjectDataBakeFixture.Document(c), "removed.json", Removed());
+        fixture.Parameters(c, new JObject { ["maxStack"] = (rawC + 3).ToString() });
+        string Doc(string id) => ProjectDataBakeFixture.Variants + "/" + id;
+
+        var plan = ProjectDataBake.Plan();
+        var itemA = plan.FirstOrDefault(i => i.document == docA);
+        Require(itemA != null && itemA.error == null, "preview lists the structured original " + itemA?.error);
+        Require(itemA.changes.Any(l => l.Contains("추가 1개")) && itemA.changes.Any(l => l.EndsWith("삭제 " + gone)) &&
+            itemA.changes.Any(l => l == "목록 가입 " + shop.name + "/itemPool: 끔") && itemA.changes.Any(l => l.Contains("(effects/@" + added + "/amount)")),
+            "preview shows the added effect, its value, the removed effect and the membership");
+        Require(itemA.changes.Any(l => l.Contains("QA 구조 삭제한 새 아이템") && l.Contains("물려받습니다")), "preview warns about the removed variant that inherits");
+        var itemDropped = plan.FirstOrDefault(i => i.document == Doc(dropped));
+        Require(itemDropped != null && !itemDropped.selected && itemDropped.error?.Contains("삭제 표시") == true, "(d) a removed variant cannot be selected");
+        Require(plan.FirstOrDefault(i => i.document == docC)?.changes.Any(l => l.Contains("삭제 표시는 굽지 않습니다")) == true, "removed original says the mark stays");
+        Require(Throws(() => ProjectDataBake.Execute(new[] { docA }, requireCleanGit: false), "함께 고르세요") && a.effects.Count == effects,
+            "structure of an original is not baked without its variants");
+        Require(Throws(() => ProjectDataBake.Execute(new[] { Doc(dropped) }, requireCleanGit: false), "오류가 있는 문서"), "(d) a removed variant is refused");
+
+        string[] chosen = { docA, Doc(inherit), Doc(joined), Doc(saveOnly), docC };
+        Debug.Log("[ProjectDataBakeCheck] " + ProjectDataBake.Execute(chosen, requireCleanGit: false));
+        Require(a.effects.Count == effects && a.effects.Last() is ItemRoomEntryShieldEffect shield && shield.id == added && shield.amount == 9f &&
+            a.effects.All(e => e.id != gone), "(a) effects written to the .asset");
+        Require(!shop.itemPool.Contains(a) && growth.items.Contains(a), "(a) shop membership off written to the registry");
+        Require(!Directory.Exists(Path.Combine(ProjectContentStore.Root, docA)) ||
+            !Directory.EnumerateFiles(Path.Combine(ProjectContentStore.Root, docA), "*", SearchOption.AllDirectories).Any(), "(a) structure files removed");
+        ItemSO Baked(string title) => growth.items.FirstOrDefault(i => i != null && i.itemName == title && AssetDatabase.Contains(i));
+        ItemSO j = Baked("QA 구조 상점 켬"), s = Baked("QA 구조 세이브만"), inherited = Baked("QA 구조 물려받음");
+        Require(j != null && shop.itemPool.Contains(j), "(b) autoJoin:false with shop membership joins both lists");
+        Require(s != null && !shop.itemPool.Contains(s), "(c) autoJoin:false without membership joins the save list only");
+        Require(inherited != null && shop.itemPool.Contains(inherited), "old definition follows its original's lists");
+        Require(string.CompareOrdinal(joined, saveOnly) < 0 == growth.items.IndexOf(j) < growth.items.IndexOf(s), "new entries appended in entry id order");
+        Require(Directory.Exists(Path.Combine(ProjectContentStore.Root, Doc(dropped))), "removed variant stays in DATA");
+        string folderC = Path.Combine(ProjectContentStore.Root, docC);
+        Require(c.maxStack == rawC + 3 && Directory.EnumerateFiles(folderC, "*", SearchOption.AllDirectories).Select(Path.GetFileName).SequenceEqual(new[] { "removed.json" }),
+            "(e) removed original bakes its values and keeps only removed.json");
+        ProjectParameterBindings.WithPublished(() =>
+            Require(!growth.items.Contains(c) && growth.ResolveSavedItem(c.name) == c, "(e) removed original still resolves its save key"));
     }
 
     // 커밋하지 않은 DATA 변경이 있으면 막고, 커밋하면 연다.

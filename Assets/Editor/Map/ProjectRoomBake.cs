@@ -14,6 +14,7 @@ using UnityEngine;
 public static class ProjectRoomBake
 {
     private const string Header = "room.json";
+    private const string Removed = "removed.json";
     private sealed class Room
     {
         public ProjectDataBake.Item item;
@@ -54,6 +55,8 @@ public static class ProjectRoomBake
             if (files?.Count == 1 && files.ContainsKey(Header) && header.template == id) continue;
             var room = new Room { item = new ProjectDataBake.Item { document = ProjectRooms.DirectoryName + "/" + id, title = header.title ?? id, variant = header.template != id } };
             rooms.Add(room);
+            // 삭제 표시한 방은 DATA에 남겨 두고 굽지 않는다(새 방은 구우면 프리팹·후보로 되살아난다).
+            if (files?.ContainsKey(Removed) == true) { room.item.error = "삭제 표시는 굽지 않습니다"; room.item.selected = false; continue; }
             try { Describe(room, id, files ?? ProjectRooms.Snapshot(id), catalog, headers, slots, taken); }
             catch (Exception e) when (DataError(e)) { room.item.error = e.Message; room.item.selected = false; }
         }

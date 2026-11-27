@@ -12,6 +12,7 @@ using Entry=ProjectParameterBindings.Entry;
 // Tools > DATA 굽기의 본체(창은 Assets/Editor/Map/ProjectDataBakeWindow.cs).
 // 원본 수치 문서 <group>/<guid>/parameters.json은 그 .asset에, 새 콘텐츠 CATALOG/VARIANTS/<id>는 원본 옆의 새 .asset에 쓰고
 // 그 문서를 지운다. 세이브 키는 에셋 이름이라 새 에셋의 formerAssetNames에 옛 키 content_<id>를 남긴다.
+// 구조 문서(LISTS 목록 원소, MEMBERS 레지스트리 가입)도 에셋에 쓴다. 삭제 표시(removed.json)는 세이브 해석으로만 남으므로 굽지 않고 DATA에 둔다.
 // 구운 뒤 WithPublished로 다시 적용한 값이 굽기 전 플레이 적용 값과 같은지 비교한다. 굽기 전 DATA는 Git에 커밋돼 있어야 한다.
 public static class ProjectDataBake
 {
@@ -23,6 +24,7 @@ public static class ProjectDataBake
         internal Entry entry;   // 원본 수치는 그 에셋, 새 콘텐츠는 복제할 원본
         internal ProjectContentVariants.Definition definition;
         internal JObject values;
+        internal Dictionary<string,string> files;   // 문서의 모든 파일(parameters.json·LISTS·MEMBERS·removed.json, 변형은 definition.json까지)
         internal string path;   // 새 콘텐츠의 새 에셋 경로. 미리보기와 굽기가 같은 값을 쓴다(모든 변형 순서로 이름을 예약).
     }
 
@@ -54,19 +56,24 @@ public static class ProjectDataBake
         string root=ProjectContentStore.Root;
         if(!Directory.Exists(root)) return items;
         var definitions=ProjectContentVariants.Definitions().ToArray();
-        string variants=Path.GetFullPath(Path.Combine(root,ProjectContentVariants.Folder))+Path.DirectorySeparatorChar;
-        foreach(string file in Directory.EnumerateFiles(root,"parameters.json",SearchOption.AllDirectories).OrderBy(f=>f,StringComparer.Ordinal))
+        // 문서 찾기는 바인딩(Published)과 같다. 삭제 표시(removed.json)는 굽지 않으므로 그것만 있는 문서는 목록에 없다.
+        foreach(string document in ProjectParameterBindings.Documents())
         {
-            if(Path.GetFullPath(file).StartsWith(variants,StringComparison.OrdinalIgnoreCase)) continue;
-            string document=Path.GetDirectoryName(Path.GetRelativePath(root,file)).Replace('\\','/');
+            Dictionary<string,string> files=null;
+            try{ files=ProjectParameters.Snapshot(document); } catch(Exception e) when(ProjectContentStore.IsDataError(e)){}
+            if(files!=null && !files.Keys.Any(Bakes)) continue;
             var item=new Item{document=document,title=document};
             items.Add(item);
             Guard(item,()=>{
-                var entry=ProjectParameterBindings.EntryFor(Path.GetFileName(document));
+                var entry=ProjectParameterBindings.EntryFor(document.Substring(document.LastIndexOf('/')+1));
                 if(entry==null || entry.Document!=document) throw new InvalidDataException("설정 대상 에셋을 찾을 수 없습니다.");
                 item.entry=entry; item.title=entry.source.name;
-                item.values=ProjectParameters.Values(ProjectParameters.Snapshot(document));
-                Describe(item,entry.source,definitions);
+                item.files=files ?? ProjectParameters.Snapshot(document);
+                item.values=ProjectParameters.Values(item.files);
+                Describe(item,entry,definitions);
+                if(ProjectStructure.IsRemoved(item.files)) item.changes.Add("삭제 표시는 굽지 않습니다(DATA에 남음)");
+                foreach(var d in definitions.Where(d=>d.template==entry.id && ProjectStructure.IsRemoved(d.files)))
+                    item.changes.Add("삭제 표시된 새 콘텐츠 "+d.title+"은 구운 원본 값을 물려받습니다(기존 세이브의 그 아이템 수치가 바뀜)");
             });
         }
         var taken=Names();
@@ -76,14 +83,20 @@ public static class ProjectDataBake
             var item=new Item{document=ProjectContentVariants.Folder+"/"+definition.id,title=definition.title,variant=true,definition=definition};
             items.Add(item);
             Guard(item,()=>{
+                // 삭제 표시는 세이브 해석으로만 남는다. 구우면 그 해석(retired)을 잃으므로 고를 수 없다.
+                if(ProjectStructure.IsRemoved(definition.files)) throw new InvalidDataException("삭제 표시된 새 콘텐츠는 굽지 않습니다");
                 var template=ProjectParameterBindings.EntryFor(definition.template);
                 if(template==null || !ProjectContentVariants.CanCreate(template)) throw new InvalidDataException("콘텐츠의 기반 원본을 확인하세요.");
-                item.entry=template; item.values=ProjectParameters.Values(definition.files);
+                item.entry=template; item.files=definition.files; item.values=ProjectParameters.Values(definition.files);
                 string path=item.path=NewPath(template,definition.title,taken);
                 item.changes.Add("새 에셋 "+path+" · 복제 원본 "+template.source.name);
                 item.changes.Add("세이브 키 "+Path.GetFileNameWithoutExtension(path)+" · 옛 키 content_"+definition.id+" 별칭");
-                foreach(var m in Memberships(all,template.source)) item.changes.Add("목록 가입 "+m.registry.name+"/"+m.field);
-                Describe(item,template.source,definitions);
+                // 자동 가입: 옛 정의(autoJoin 없음)는 원본의 모든 목록, autoJoin:false는 세이브 해석 목록(Growth)만. 상점 진열은 MEMBERS 줄이 정한다.
+                var members=definition.files.Keys.Where(k=>k.StartsWith("MEMBERS/",StringComparison.Ordinal)).ToHashSet(StringComparer.Ordinal);
+                foreach(var m in Memberships(all,template.source))
+                    if((definition.autoJoin || m.registry is GrowthRegistrySO) && !members.Contains("MEMBERS/"+AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(m.registry))+"/"+m.field+".json"))
+                        item.changes.Add("목록 가입 "+m.registry.name+"/"+m.field);
+                Describe(item,new Entry{id=definition.id,group=ProjectContentVariants.Folder,source=template.source,title=definition.title},definitions);
                 foreach(string referrer in Referrers(definition.id)) item.changes.Add("참조를 새 에셋으로 교체 "+referrer);
             });
         }
@@ -94,20 +107,25 @@ public static class ProjectDataBake
         try{ read(); }
         catch(Exception e) when(ProjectContentStore.IsDataError(e)){ item.error=e.Message; item.selected=false; }
     }
-    private static void Describe(Item item,ScriptableObject source,ProjectContentVariants.Definition[] definitions)
+    private static bool Bakes(string file)=>file=="parameters.json" || file.StartsWith("LISTS/",StringComparison.Ordinal) || file.StartsWith("MEMBERS/",StringComparison.Ordinal);
+    // 새 원소의 값 키(effects/@<새 id>/value)는 구조를 적용해야 경로가 생긴다. 적용은 이 안에서만 하고 끝에 되돌린다.
+    private static void Describe(Item item,Entry entry,ProjectContentVariants.Definition[] definitions)
     {
-        var fields=ProjectParameters.Fields(source,labels:true).ToDictionary(f=>f.path,StringComparer.Ordinal);
-        foreach(var pair in item.values)
-        {
-            if(!fields.TryGetValue(pair.Key,out var field)) throw new InvalidDataException("이 판에 없는 항목 "+pair.Key);
-            string data=(string)pair.Value, shown=data;
-            if(field.IsReference)
-                shown=data.Length==0 ? "(없음)" : Array.Find(definitions,d=>d.id==data) is {} d ? "새 콘텐츠 "+d.title :
-                    Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(data)) is {Length:>0} name ? name : data;
-            object now=field.read();
-            string current=field.IsReference || field.IsAsset ? (now as UnityEngine.Object)?.name ?? "(없음)" : Convert.ToString(now,CultureInfo.InvariantCulture);
-            item.changes.Add(field.label+" ("+pair.Key+"): "+current+" → "+shown);
-        }
+        ProjectParameterBindings.WithStructure(entry,item.files,()=>{
+            var fields=ProjectParameters.Fields(entry.source,labels:true).ToDictionary(f=>f.path,StringComparer.Ordinal);
+            foreach(var pair in item.values)
+            {
+                if(!fields.TryGetValue(pair.Key,out var field)) throw new InvalidDataException("이 판에 없는 항목 "+pair.Key);
+                string data=(string)pair.Value, shown=data;
+                if(field.IsReference)
+                    shown=data.Length==0 ? "(없음)" : Array.Find(definitions,d=>d.id==data) is {} d ? "새 콘텐츠 "+d.title :
+                        Path.GetFileNameWithoutExtension(AssetDatabase.GUIDToAssetPath(data)) is {Length:>0} name ? name : data;
+                object now=field.read();
+                string current=field.IsReference || field.IsAsset ? (now as UnityEngine.Object)?.name ?? "(없음)" : Convert.ToString(now,CultureInfo.InvariantCulture);
+                item.changes.Add(field.label+" ("+pair.Key+"): "+current+" → "+shown);
+            }
+        });
+        item.changes.AddRange(ProjectStructure.Describe(entry,item.files,id=>ProjectParameterBindings.EntryFor(id)?.source));
     }
     private static IEnumerable<string> Referrers(string id)
     {
@@ -217,31 +235,46 @@ public static class ProjectDataBake
                     throw new InvalidDataException(item.title+"/"+pair.Key+" 이(가) 굽지 않는 새 콘텐츠를 참조합니다. 그 콘텐츠도 함께 고르세요. "+(string)pair.Value);
         // 실행 중 새 콘텐츠는 DATA 값이 적용되기 전의 원본 .asset을 복제한다. 원본 수치만 구우면 남은 새 콘텐츠가
         // 자기 parameters에 없는 항목에서 구운 값을 물려받아 바뀌므로 함께 고르게 한다.
+        // 원본의 목록 원소(LISTS)·가입(MEMBERS)을 구우면 남은 새 콘텐츠가 원소를 물려받거나 잃고, 자동 가입한 목록도 바뀐다.
+        // 삭제 표시된 새 콘텐츠는 고를 수 없으므로 여기서 빼고 미리보기 줄로 알린다.
         foreach(var item in items.Where(i=>!i.variant))
-            foreach(var d in definitions.Where(d=>d.template==item.entry.id && !baking.Contains(d.id)))
+        {
+            bool structured=item.files.Keys.Any(k=>k.StartsWith("LISTS/",StringComparison.Ordinal) || k.StartsWith("MEMBERS/",StringComparison.Ordinal));
+            foreach(var d in definitions.Where(d=>d.template==item.entry.id && !baking.Contains(d.id) && !ProjectStructure.IsRemoved(d.files)))
             {
                 var own=ProjectParameters.Values(d.files);
+                if(structured)
+                    throw new InvalidDataException(item.title+" 을(를) 원본으로 하는 새 콘텐츠 "+d.title+" 의 목록 원소나 가입이 바뀝니다. 그 콘텐츠도 함께 고르세요. "+d.id);
                 // 원본의 표시 이름은 변형이 title로 덮으므로 물려받지 않는다.
                 if(item.values.Properties().Any(p=>own[p.Name]==null && p.Name!=ProjectParameters.DisplayNameField(item.entry.source)))
                     throw new InvalidDataException(item.title+" 을(를) 원본으로 하는 새 콘텐츠 "+d.title+" 의 값이 바뀝니다. 그 콘텐츠도 함께 고르세요. "+d.id);
             }
+        }
 
         var all=ProjectParameterBindings.All();
         var registries=all.Select(e=>e.source).Where(s=>s is GrowthRegistrySO or ShopRegistrySO).ToArray();
         Dictionary<string,Dictionary<string,string>> expected=null;
         List<string> expectedMembers=null;
+        // 새 에셋이 들어갈 목록: 굽기 전 플레이에서 그 변형 복사본이 든 목록(autoJoin·MEMBERS를 반영한 결과).
+        var joins=new Dictionary<string,(ScriptableObject registry,string field)[]>(StringComparer.Ordinal);
         ProjectParameterBindings.WithPublished(()=>{
             string LiveKey(UnityEngine.Object o)=>Key(o,null);
-            expected=items.ToDictionary(i=>i.document,i=>Snapshot(i.variant ?
-                ProjectContentVariants.Entries.FirstOrDefault(e=>e.id==i.definition.id)?.source ?? throw new InvalidDataException("새 콘텐츠를 적용하지 못했습니다. "+i.document) :
-                i.entry.source,LiveKey));
+            ScriptableObject Copy(Item i)=>ProjectContentVariants.Entries.FirstOrDefault(e=>e.id==i.definition.id)?.source ?? throw new InvalidDataException("새 콘텐츠를 적용하지 못했습니다. "+i.document);
+            expected=items.ToDictionary(i=>i.document,i=>Snapshot(i.variant ? Copy(i) : i.entry.source,LiveKey));
             expectedMembers=Members(registries,LiveKey);
+            foreach(var item in items.Where(i=>i.variant))
+            {
+                var copy=Copy(item);
+                joins[item.document]=registries.SelectMany(r=>ProjectContentVariants.Lists(r).Where(l=>l.list!=null && l.list.Contains(copy)).Select(l=>(r,l.field))).ToArray();
+            }
         });
 
         Undo.IncrementCurrentGroup();
         Undo.SetCurrentGroupName("DATA 굽기");
         var created=new Dictionary<string,ScriptableObject>(StringComparer.Ordinal);   // 변형 id → 새 에셋
         var baked=new Dictionary<string,string>(StringComparer.Ordinal);              // 새 GUID → 변형 id
+        // 레지스트리 끝에 새로 넣는 항목. 실행 중 Rebuild와 같은 엔트리 id 순(원본 GUID와 변형 id를 섞어 Ordinal)으로 넣어야 같은 시드의 보상·상점이 같다.
+        var additions=new List<(ScriptableObject registry,string field,string id,ScriptableObject asset)>();
         foreach(var item in items.Where(i=>i.variant))
         {
             // 실행 중 복제본처럼 DATA 값이 적용되지 않은 원본 파일을 복사한다(원본 수치는 아래에서 따로 굽는다).
@@ -251,10 +284,39 @@ public static class ProjectDataBake
             ProjectContentVariants.Name(asset,item.definition.title);
             asset.GetType().GetField("formerAssetNames")?.SetValue(asset,new[]{"content_"+item.definition.id});
             EditorUtility.SetDirty(asset);
-            foreach(var m in Memberships(all,item.entry.source).ToArray())
-            { Undo.RecordObject(m.registry,"DATA 굽기"); m.list.Add(asset); EditorUtility.SetDirty(m.registry); }
+            foreach(var (registry,field) in joins[item.document]) additions.Add((registry,field,item.definition.id,asset));
             created[item.definition.id]=asset;
             baked[AssetDatabase.AssetPathToGUID(path)]=item.definition.id;
+        }
+        // 원본의 가입(MEMBERS)을 레지스트리 에셋에 쓴다.
+        foreach(var item in items.Where(i=>!i.variant))
+            foreach(var pair in item.files.Where(p=>p.Key.StartsWith("MEMBERS/",StringComparison.Ordinal)))
+            {
+                var parts=pair.Key.Split('/');
+                var registry=ProjectParameterBindings.EntryFor(parts[1])?.source ?? throw new InvalidDataException(item.document+"/"+pair.Key+" · 가입할 레지스트리를 찾을 수 없습니다.");
+                string field=Path.GetFileNameWithoutExtension(parts[2]);
+                var list=Array.Find(ProjectContentVariants.Lists(registry),l=>l.field==field).list ?? throw new InvalidDataException(item.document+"/"+pair.Key+" · 레지스트리에 없는 목록입니다.");
+                var source=item.entry.source;
+                if((bool)JObject.Parse(pair.Value)["included"]){ if(!list.Contains(source)) additions.Add((registry,field,item.entry.id,source)); continue; }
+                Undo.RecordObject(registry,"DATA 굽기");
+                while(list.Contains(source)) list.Remove(source);
+                EditorUtility.SetDirty(registry);
+            }
+        foreach(var group in additions.GroupBy(a=>(a.registry,a.field)))
+        {
+            Undo.RecordObject(group.Key.registry,"DATA 굽기");
+            var list=Array.Find(ProjectContentVariants.Lists(group.Key.registry),l=>l.field==group.Key.field).list;
+            foreach(var a in group.OrderBy(a=>a.id,StringComparer.Ordinal)) list.Add(a.asset);
+            EditorUtility.SetDirty(group.Key.registry);
+        }
+        // 값을 쓰기 전에 목록 원소(LISTS)를 에셋에 영구 적용한다. 새 원소가 있어야 그 값 경로(effects/@<id>/…)가 Fields에 생긴다.
+        foreach(var item in items.Where(i=>i.files.Keys.Any(k=>k.StartsWith("LISTS/",StringComparison.Ordinal))))
+        {
+            var target=item.variant ? created[item.definition.id] : item.entry.source;
+            Undo.RecordObject(target,"DATA 굽기");
+            ProjectStructure.Apply(item.variant ? new Entry{id=item.definition.id,group=ProjectContentVariants.Folder,source=target,title=item.definition.title} : item.entry,item.files);
+            ProjectStructure.Commit(target);
+            EditorUtility.SetDirty(target);
         }
         // 모두 해석한 뒤에 쓴다. 틀린 값 하나로 에셋 일부만 바뀌지 않게 한다.
         var writes=new List<(ScriptableObject target,ProjectParameters.Field field,object value)>();
@@ -272,8 +334,9 @@ public static class ProjectDataBake
         foreach(var w in writes){ w.field.write(w.value); EditorUtility.SetDirty(w.target); }
         AssetDatabase.SaveAssets();
 
+        // 원본은 구운 파일(parameters·LISTS·MEMBERS)만 지우고 삭제 표시는 남긴다. 변형은 폴더 전체.
         foreach(var item in items)
-            Rewrite(item.document,files=>{ var next=new Dictionary<string,string>(files); if(item.variant) next.Clear(); else next.Remove("parameters.json"); return next; });
+            Rewrite(item.document,files=>item.variant ? new Dictionary<string,string>() : files.Where(p=>!Bakes(p.Key)).ToDictionary(p=>p.Key,p=>p.Value,StringComparer.Ordinal));
         // 남은 문서가 구운 변형을 가리키면 새 에셋 GUID로 바꾼다.
         var guids=created.ToDictionary(p=>p.Key,p=>AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(p.Value)),StringComparer.Ordinal);
         foreach(string file in Directory.EnumerateFiles(ProjectContentStore.Root,"parameters.json",SearchOption.AllDirectories).ToArray())

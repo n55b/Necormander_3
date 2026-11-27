@@ -150,21 +150,8 @@ public sealed class ProjectParameterBindings : MonoBehaviour
                     return Dependencies(template,ProjectParameters.Values(definition.files));
                 });
         }
-        // 문서 = parameters.json·removed.json의 부모, 또는 /LISTS/·/MEMBERS/ 앞. 변형은 위에서 읽었다.
-        // WORLD/ 아래(방 removed.json 등)는 다른 저장소가 읽는다. 맵 생성 SO의 그룹 WORLD/GENERATION만 이 바인딩 문서다.
-        var documents=new SortedSet<string>(StringComparer.Ordinal);
-        foreach(string file in Directory.EnumerateFiles(ProjectContentStore.Root,"*.json",SearchOption.AllDirectories))
-        {
-            string path=Path.GetRelativePath(ProjectContentStore.Root,file).Replace('\\','/');
-            if(path.StartsWith(ProjectContentVariants.Folder+"/",StringComparison.Ordinal) ||
-                path.StartsWith("WORLD/",StringComparison.Ordinal) && !path.StartsWith("WORLD/GENERATION/",StringComparison.Ordinal)) continue;
-            int cut=path.IndexOf("/LISTS/",StringComparison.Ordinal);
-            if(cut<0) cut=path.IndexOf("/MEMBERS/",StringComparison.Ordinal);
-            if(cut<0 && Path.GetFileName(path) is "parameters.json" or ProjectStructure.RemovedFile) cut=path.LastIndexOf('/');
-            if(cut>0) documents.Add(path.Substring(0,cut));
-        }
         bool structured=false;
-        foreach(string document in documents)
+        foreach(string document in Documents())
             Document(document,()=>{
                 var entry=EntryFor(document.Substring(document.LastIndexOf('/')+1));
                 if(entry==null || entry.Document!=document) throw new InvalidDataException("설정 대상 에셋을 찾을 수 없습니다. "+document);
@@ -181,6 +168,31 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         // 변형 가입과 구조 문서(삭제·가입)는 레지스트리 목록을 다시 계산한다.
         if(definitions.Length>0 || structured) entries.AddRange(All().Where(e=>e.source is GrowthRegistrySO or ShopRegistrySO));
         return entries.GroupBy(e=>e.id).Select(g=>g.First()).ToArray();
+    }
+    // 원본 문서 = parameters.json·removed.json의 부모, 또는 /LISTS/·/MEMBERS/ 앞. 변형(CATALOG/VARIANTS)은 정의로 따로 읽는다.
+    // WORLD/ 아래(방 removed.json 등)는 다른 저장소가 읽는다. 맵 생성 SO의 그룹 WORLD/GENERATION만 이 바인딩 문서다. DATA 굽기도 같은 규칙이다.
+    internal static SortedSet<string> Documents()
+    {
+        var documents=new SortedSet<string>(StringComparer.Ordinal);
+        if(!Directory.Exists(ProjectContentStore.Root)) return documents;
+        foreach(string file in Directory.EnumerateFiles(ProjectContentStore.Root,"*.json",SearchOption.AllDirectories))
+        {
+            string path=Path.GetRelativePath(ProjectContentStore.Root,file).Replace('\\','/');
+            if(path.StartsWith(ProjectContentVariants.Folder+"/",StringComparison.Ordinal) ||
+                path.StartsWith("WORLD/",StringComparison.Ordinal) && !path.StartsWith("WORLD/GENERATION/",StringComparison.Ordinal)) continue;
+            int cut=path.IndexOf("/LISTS/",StringComparison.Ordinal);
+            if(cut<0) cut=path.IndexOf("/MEMBERS/",StringComparison.Ordinal);
+            if(cut<0 && Path.GetFileName(path) is "parameters.json" or ProjectStructure.RemovedFile) cut=path.LastIndexOf('/');
+            if(cut>0) documents.Add(path.Substring(0,cut));
+        }
+        return documents;
+    }
+    // 편집 모드에서 구조 파일을 잠시 적용한다(새 원소의 값 경로는 구조를 적용해야 생긴다). 그동안 저장 필터가 이 에셋 저장을 막는다.
+    internal static void WithStructure(Entry entry,IReadOnlyDictionary<string,string> files,Action check)
+    {
+        bool held=EditCheck; EditCheck=true;
+        try{ ProjectStructure.Apply(entry,files); check(); }
+        finally{ ProjectStructure.Apply(entry,ProjectStructure.None); EditCheck=held; }
     }
     public static Entry[] All()=>AssetDatabase.FindAssets("t:ScriptableObject",new[]{"Assets/SOData","Assets/Resources"})
         .Select(EntryFor).Where(e=>e!=null).OrderBy(e=>e.group,StringComparer.Ordinal).ThenBy(e=>e.source.name,StringComparer.Ordinal).ToArray();
@@ -211,11 +223,7 @@ public sealed class ProjectParameterBindings : MonoBehaviour
         void Check(Entry entry,Newtonsoft.Json.Linq.JObject values,Dictionary<string,string> files)
         {
             ProjectStructure.Validate(entry,files,Registry,starting);
-            // 새 원소의 값 경로는 구조를 적용해야 생긴다. 그동안 저장 필터가 이 에셋 저장을 막는다.
-            bool held=EditCheck; EditCheck=true;
-            try
-            {
-                ProjectStructure.Apply(entry,files);
+            WithStructure(entry,files,()=>{
                 ProjectParameters.RequireKeys(entry.source,entry.Document);
                 var fields=ProjectParameters.Fields(entry.source).ToDictionary(f=>f.path);
                 foreach(var pair in values)
@@ -223,8 +231,7 @@ public sealed class ProjectParameterBindings : MonoBehaviour
                     if(!fields.TryGetValue(pair.Key,out var field)) throw new InvalidDataException(entry.Document+"/"+pair.Key);
                     if(field.readOnly || !field.IsReference)field.Parse((string)pair.Value);
                 }
-            }
-            finally{ ProjectStructure.Apply(entry,ProjectStructure.None); EditCheck=held; }
+            });
         }
         foreach(var entry in published){ var files=ProjectParameters.Snapshot(entry.Document); Check(entry,ProjectParameters.Values(files),files); }
         foreach(var def in ProjectContentVariants.Definitions(strict:true))

@@ -112,21 +112,23 @@ public static class SaveCompatibilityCheck
             var growth = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
             var shop = AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset");
             fixture.Keep(growth, shop);
+            // 마지막은 새 형식(autoJoin:false) 아이템: 세이브 해석 목록에만 가입한 채 구워진다.
             ScriptableObject[] templates = { growth.items.First(i => i != null), growth.equipments.First(e => e != null),
-                growth.treasures.First(t => t != null), growth.minionDatas.OfType<MainMinionDataSO>().First() };
-            string[] ids = templates.Select((t, n) => fixture.Variant(t, "QA 세이브 굽기 " + n)).ToArray();
+                growth.treasures.First(t => t != null), growth.minionDatas.OfType<MainMinionDataSO>().First(), growth.items.First(i => i != null) };
+            string[] ids = templates.Select((t, n) => fixture.Variant(t, "QA 세이브 굽기 " + n, autoJoin: n == 4 ? false : (bool?)null)).ToArray();
             Object Resolve(SaveData save, int n) => n switch
             {
                 0 => growth.ResolveSavedItem(save.pouchItemNames[0]),
                 1 => growth.ResolveSavedEquipment(save.equipment.equipmentSOName),
                 2 => growth.ResolveSavedTreasure(save.treasures[0].treasureSOAddress),
+                4 => growth.ResolveSavedItem(save.pouchItemNames[1]),
                 _ => growth.ResolveSavedMinion(save.slots[0].equippedMinionName),
             };
             // 변형이 DATA에 있을 때 쓴 세이브: 실행 중 복제본의 이름이 content_<id>다.
             ProjectParameterBindings.WithPublished(() =>
             {
-                var save = new SaveData { currentFloor = 1, playerHP = 10, pouchSlotCount = 1,
-                    pouchItemNames = { "content_" + ids[0] }, equipment = new EquipmentSaveData { equipmentSOName = "content_" + ids[1] },
+                var save = new SaveData { currentFloor = 1, playerHP = 10, pouchSlotCount = 2,
+                    pouchItemNames = { "content_" + ids[0], "content_" + ids[4] }, equipment = new EquipmentSaveData { equipmentSOName = "content_" + ids[1] },
                     treasures = { new TreasureSaveData { treasureSOAddress = "content_" + ids[2], stackCount = 1 } },
                     slots = { new CoreSlotSaveData { equippedMinionName = "content_" + ids[3], quantity = 1 } } };
                 for (int n = 0; n < ids.Length; n++)
@@ -141,6 +143,8 @@ public static class SaveCompatibilityCheck
                 Require(asset != null && asset.name == "QA 세이브 굽기 " + n && AssetDatabase.Contains(asset)
                     && asset.GetType() == templates[n].GetType(), "content_ save key resolves to the baked asset " + n);
             }
+            var saveOnly = (ItemSO)Resolve(loaded, 4);
+            Require(growth.items.Contains(saveOnly) && !shop.itemPool.Contains(saveOnly), "autoJoin:false variant baked into the save list only");
             Require(growth.ResolveSavedItem(templates[0].name) == templates[0] && growth.ResolveSavedMinion(templates[3].name) == templates[3],
                 "original save keys still resolve to the originals");
         }

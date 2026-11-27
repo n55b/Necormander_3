@@ -120,6 +120,41 @@ internal static class ProjectStructure
         pristine.Clear(); listOriginals.Clear(); specs.Clear(); implicitJoins.Clear(); growths.Clear();
     }
 
+#if UNITY_EDITOR
+    // DATA 굽기: 지금 적용한 목록을 에셋의 값으로 남긴다. Restore가 이 대상의 목록을 되돌리지 않는다.
+    internal static void Commit(ScriptableObject target)
+    {
+        foreach(var key in listOriginals.Keys.Where(k=>k.owner==target).ToArray()) listOriginals.Remove(key);
+        specs.Remove(target);
+    }
+    // DATA 굽기 미리보기의 구조 변경 줄.
+    internal static IEnumerable<string> Describe(Entry entry,IReadOnlyDictionary<string,string> files,Func<string,ScriptableObject> registryById)
+    {
+        var lists=new SortedDictionary<string,List<(string id,Line line)>>(StringComparer.Ordinal);
+        foreach(var pair in files.Where(p=>IsStructure(p.Key) && p.Key!=RemovedFile).OrderBy(p=>p.Key,StringComparer.Ordinal))
+        {
+            var (kind,name,id)=Split(pair.Key,entry);
+            if(kind=="MEMBERS")
+            {
+                var registry=registryById(name);
+                yield return "목록 가입 "+(registry!=null ? registry.name : name)+"/"+id+": "+(Included(pair.Value,pair.Key) ? "켬" : "끔");
+                continue;
+            }
+            if(!lists.TryGetValue(name,out var lines)) lists[name]=lines=new();
+            lines.Add((id,Read(pair.Value,pair.Key)));
+        }
+        foreach(var (name,lines) in lists)
+        {
+            var info=ListField(entry.source.GetType(),name,out var element,entry.Document);
+            string label=DesignerInspectorLabels.Describe(info).label;
+            var added=lines.Where(l=>l.line.type!=null && !l.line.removed).Select(l=>Element(element,l.line.type,entry.Document+"/LISTS/"+name+"/"+l.id)).ToArray();
+            if(added.Length>0) yield return label+" 추가 "+added.Length+"개 · "+string.Join(", ",added.Select(t=>t.GetCustomAttribute<ItemEffectInfoAttribute>()?.Name ?? t.Name));
+            if(lines.Any(l=>l.line.type==null && !l.line.removed && l.line.order!=null)) yield return label+" 순서";
+            foreach(var l in lines.Where(l=>l.line.removed)) yield return label+" 삭제 "+l.id;
+        }
+    }
+#endif
+
     // 저장·빌드 검증. startingItems: 지금 시작 아이템의 id(편집 모드는 Growth 문서 값 또는 에셋 값, 실행 중은 살아 있는 값).
     internal static void Validate(Entry entry,IReadOnlyDictionary<string,string> files,Func<string,ScriptableObject> registryById,ICollection<string> startingItems)
     {
