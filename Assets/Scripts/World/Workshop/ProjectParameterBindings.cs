@@ -95,7 +95,7 @@ public sealed class ProjectParameterBindings : MonoBehaviour
             "Assets/Resources/UI/UISkinSettings.asset" or "Assets/Resources/UI/TextMotion.asset"=>"UI/STYLE",
             _=>null};
     }
-    private static Entry EntryFor(string id)
+    internal static Entry EntryFor(string id)
     {
         string path=AssetDatabase.GUIDToAssetPath(id);
         string group=Group(path);

@@ -14,9 +14,9 @@ internal sealed class ProjectGitReview
         internal readonly Dictionary<string,ProjectContentStore.Conflict> decisions=new();
     }
 
-    private static string Git(string arguments)
+    internal static string Git(string arguments,string checkout=null)
     {
-        var start=new ProcessStartInfo("git","--literal-pathspecs "+arguments) {WorkingDirectory=ProjectDataConnection.Checkout,
+        var start=new ProcessStartInfo("git","--literal-pathspecs "+arguments) {WorkingDirectory=checkout ?? ProjectDataConnection.Checkout,
             UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,
             StandardOutputEncoding=System.Text.Encoding.UTF8,StandardErrorEncoding=System.Text.Encoding.UTF8};
         using var git=Process.Start(start);

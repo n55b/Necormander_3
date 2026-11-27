@@ -77,13 +77,7 @@ internal static class ProjectContentVariants
                 var copy=UnityEngine.Object.Instantiate(template.source);
                 copy.name="content_"+definition.id;
                 copy.hideFlags=HideFlags.DontSave;
-                switch(copy)
-                {
-                    case ItemSO item:item.itemName=definition.title;break;
-                    case EquipmentSO equipment:equipment.equipmentName=definition.title;break;
-                    case MainMinionDataSO minion:minion.minionName=definition.title;break;
-                    case TreasureSO treasure:treasure.itemName=definition.title;treasure.localizedItemName=null;break;
-                }
+                Name(copy,definition.title);
                 instance=new Entry{id=definition.id,source=copy,group=Folder,title=definition.title};
                 live.Add(definition.id,instance);
             }
@@ -94,12 +88,30 @@ internal static class ProjectContentVariants
                     if(list==null||!list.Contains(template.source)||list.Contains(instance.source))return;
                     list.Add(instance.source);memberships.Add((source.source,list,instance.source));
                 }
-                if(source.source is GrowthRegistrySO growth)
-                {Add(growth.items);Add(growth.equipments);Add(growth.minionDatas);Add(growth.treasures);}
-                if(source.source is ShopRegistrySO shop)Add(shop.itemPool);
+                foreach(var (_,list) in Lists(source.source))Add(list);
             }
         }
     }
+    // 변형의 표시 이름. 세이브 키(에셋 이름)는 따로 정한다. DATA 굽기도 같은 규칙으로 새 에셋 이름을 쓴다.
+    internal static void Name(ScriptableObject copy,string title)
+    {
+        switch(copy)
+        {
+            case ItemSO item:item.itemName=title;break;
+            case EquipmentSO equipment:equipment.equipmentName=title;break;
+            case MainMinionDataSO minion:minion.minionName=title;break;
+            case TreasureSO treasure:treasure.itemName=title;treasure.localizedItemName=null;break;
+        }
+    }
+    internal static string Title(ScriptableObject source)=>source switch
+        {ItemSO i=>i.itemName, EquipmentSO e=>e.equipmentName, MainMinionDataSO m=>m.minionName, TreasureSO t=>t.itemName, _=>null};
+    // 변형이 원본을 따라 가입하는 레지스트리 목록. DATA 굽기도 같은 목록에 새 에셋을 넣는다.
+    internal static (string field,IList list)[] Lists(ScriptableObject registry)=>registry switch
+    {
+        GrowthRegistrySO g=>new (string,IList)[]{("items",g.items),("equipments",g.equipments),("minionDatas",g.minionDatas),("treasures",g.treasures)},
+        ShopRegistrySO s=>new (string,IList)[]{("itemPool",s.itemPool)},
+        _=>Array.Empty<(string,IList)>()
+    };
     internal static void Release()
     {
         foreach(var member in memberships)member.list.Remove(member.asset);

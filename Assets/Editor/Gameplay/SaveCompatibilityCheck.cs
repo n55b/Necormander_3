@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -97,6 +98,56 @@ public static class SaveCompatibilityCheck
             SaveSystem.DeleteSave();
         }
         Debug.Log("[SaveCompatibilityCheck] File storage PASS");
+    }
+
+    // DATA 새 콘텐츠로 있던 때의 세이브 키 content_<id>가 굽기 후 새 에셋으로 해석된다(아이템·장비·보물·소환수).
+    public static void VerifyBakedVariantKeys()
+    {
+        RequireIsolatedProject();
+        Require(SaveSystem.DeleteSave(), "reset isolated files");
+        try
+        {
+            using var fixture = new ProjectDataBakeFixture();
+            var growth = AssetDatabase.LoadAssetAtPath<GrowthRegistrySO>("Assets/SOData/Registry/Growth Reward Registry.asset");
+            var shop = AssetDatabase.LoadAssetAtPath<ShopRegistrySO>("Assets/SOData/Registry/Shop Registry.asset");
+            fixture.Keep(growth, shop);
+            ScriptableObject[] templates = { growth.items.First(i => i != null), growth.equipments.First(e => e != null),
+                growth.treasures.First(t => t != null), growth.minionDatas.OfType<MainMinionDataSO>().First() };
+            string[] ids = templates.Select((t, n) => fixture.Variant(t, "QA 세이브 굽기 " + n)).ToArray();
+            Object Resolve(SaveData save, int n) => n switch
+            {
+                0 => growth.ResolveSavedItem(save.pouchItemNames[0]),
+                1 => growth.ResolveSavedEquipment(save.equipment.equipmentSOName),
+                2 => growth.ResolveSavedTreasure(save.treasures[0].treasureSOAddress),
+                _ => growth.ResolveSavedMinion(save.slots[0].equippedMinionName),
+            };
+            // 변형이 DATA에 있을 때 쓴 세이브: 실행 중 복제본의 이름이 content_<id>다.
+            ProjectParameterBindings.WithPublished(() =>
+            {
+                var save = new SaveData { currentFloor = 1, playerHP = 10, pouchSlotCount = 1,
+                    pouchItemNames = { "content_" + ids[0] }, equipment = new EquipmentSaveData { equipmentSOName = "content_" + ids[1] },
+                    treasures = { new TreasureSaveData { treasureSOAddress = "content_" + ids[2], stackCount = 1 } },
+                    slots = { new CoreSlotSaveData { equippedMinionName = "content_" + ids[3], quantity = 1 } } };
+                for (int n = 0; n < ids.Length; n++)
+                    Require(Resolve(save, n)?.name == "content_" + ids[n], "variant save key resolves before baking " + n);
+                Require(SaveSystem.Save(save), "write the variant-era save");
+            });
+            ProjectDataBake.Execute(ids.Select(id => ProjectDataBakeFixture.Variants + "/" + id).ToArray(), requireCleanGit: false);
+            var loaded = SaveSystem.Load();
+            for (int n = 0; n < ids.Length; n++)
+            {
+                var asset = Resolve(loaded, n);
+                Require(asset != null && asset.name == "QA 세이브 굽기 " + n && AssetDatabase.Contains(asset)
+                    && asset.GetType() == templates[n].GetType(), "content_ save key resolves to the baked asset " + n);
+            }
+            Require(growth.ResolveSavedItem(templates[0].name) == templates[0] && growth.ResolveSavedMinion(templates[3].name) == templates[3],
+                "original save keys still resolve to the originals");
+        }
+        finally
+        {
+            SaveSystem.DeleteSave();
+        }
+        Debug.Log("[SaveCompatibilityCheck] Baked variant keys PASS");
     }
 
     public static void WriteAndReload()

@@ -166,6 +166,7 @@ if ((Want @('Baseline', 'Combat'))) {
 }
 if ((Want @('Baseline', 'Save'))) {
     Invoke-EditorCheck 'SaveCompatibilityCheck.VerifyFileStorage'
+    Invoke-EditorCheck 'SaveCompatibilityCheck.VerifyBakedVariantKeys'
     Invoke-EditorCheck 'SaveCompatibilityCheck.WriteAndReload' -PlayMode
     Invoke-EditorCheck 'SaveCompatibilityCheck.ReadAfterRestart' -PlayMode
 }
@@ -199,6 +200,7 @@ if ((Want @('WorkshopPlayMode', 'LevelWorkshop'))) {
     Invoke-EditorCheck 'ProjectContentBuild.StartRoomCheck' -PlayMode -ExtraArgs @('-projectRoomCheck', 'passages', 'unused')
 }
 if ((Want @('ProjectContent'))) {
+    Invoke-EditorCheck 'ProjectDataBakeCheck.Run'
     & (Join-Path $source 'Tools/Verification/Invoke-ProjectRoomTeam.ps1') -Sandbox $sandbox -UnityEditor $UnityEditor -Results $logs
     $results.Add("PASS project content Ctrl+S, save button, two Git checkouts and Windows dungeon | $logs")
 }

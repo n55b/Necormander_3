@@ -11,6 +11,8 @@ public class EquipmentSO : ScriptableObject
     public Sprite icon;
     [Tooltip("장비 등급.")]
     public ItemRarity rarity = ItemRarity.Common;
+    [Tooltip("세이브는 장비를 에셋 이름으로 저장한다. DATA 굽기가 새 콘텐츠의 옛 키(content_<id>)를 여기 남긴다.")]
+    [WorkshopReadOnly] public string[] formerAssetNames = new string[0];
 
     [Header("손 애니메이션")]
     [Tooltip("선택 사항. Body Animator와 같은 기본 컨트롤러를 사용하는 손 애니메이션 오버라이드. 비어 있으면 기본 외형을 사용한다.")]

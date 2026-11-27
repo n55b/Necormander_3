@@ -35,12 +35,18 @@ public class GrowthRegistrySO : ScriptableObject
     {
         if (string.IsNullOrEmpty(key)) return null;
         return treasures?.Find(t => t != null && t.name == key)
-            ?? treasures?.Find(t => t != null && t.itemName == key);
+            ?? treasures?.Find(t => t != null && t.itemName == key)
+            ?? treasures?.Find(t => t != null && Former(t.formerAssetNames, key));
     }
 
     public EquipmentSO ResolveSavedEquipment(string key)
-        => string.IsNullOrEmpty(key) ? null : equipments?.Find(e => e != null && e.name == key);
+        => string.IsNullOrEmpty(key) ? null : equipments?.Find(e => e != null && e.name == key)
+            ?? equipments?.Find(e => e != null && Former(e.formerAssetNames, key));
 
     public ItemSO ResolveSavedItem(string key)
-        => string.IsNullOrEmpty(key) ? null : items?.Find(i => i != null && i.name == key);
+        => string.IsNullOrEmpty(key) ? null : items?.Find(i => i != null && i.name == key)
+            ?? items?.Find(i => i != null && Former(i.formerAssetNames, key));
+
+    // 현재 이름이 먼저다. 옛 이름(예: DATA 굽기 전 키 content_<id>)은 일치하는 현재 이름이 없을 때만 본다.
+    private static bool Former(string[] names, string key) => names != null && System.Array.IndexOf(names, key) >= 0;
 }

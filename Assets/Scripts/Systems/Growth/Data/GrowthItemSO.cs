@@ -19,6 +19,10 @@ public abstract class GrowthItemSO : ScriptableObject
 
     [Header("상점 정보")]
     public int shopCost = 100; // 상점에서 판매 시 가격
+
+    [Header("세이브 호환")]
+    [Tooltip("세이브는 에셋 이름으로 저장한다. DATA 굽기가 새 콘텐츠의 옛 키(content_<id>)를 여기 남긴다.")]
+    [WorkshopReadOnly] public string[] formerAssetNames = new string[0];
 }
 
 public enum ItemRarity

@@ -75,6 +75,10 @@ public class ItemSO : ScriptableObject
     [Tooltip("주머니에 들어 있는 동안 적용되는 효과들. 인스펙터에서 + 로 종류를 골라 추가한다.")]
     [SerializeReference] public List<ItemEffect> effects = new List<ItemEffect>();
 
+    [Header("세이브 호환")]
+    [Tooltip("세이브는 아이템을 에셋 이름으로 저장한다. DATA 굽기가 새 콘텐츠의 옛 키(content_<id>)를 여기 남긴다.")]
+    [WorkshopReadOnly] public string[] formerAssetNames = new string[0];
+
     /// <summary>표기용 이름. itemName 이 비면 에셋 이름으로 폴백.</summary>
     public string DisplayName => string.IsNullOrEmpty(itemName) ? name : itemName;
 
