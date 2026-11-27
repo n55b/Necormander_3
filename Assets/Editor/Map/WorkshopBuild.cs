@@ -17,7 +17,7 @@ public static class WorkshopBuild
     private const string PreviousStartScene = "Workshop.PreviousPlayModeStartScene";
     private const string PlayMenu = "Tools/제작실/플레이 모드에서 열기";
     private const string CatalogPath=ProjectRooms.CatalogPath;
-    private const string Rooms="Assets/Prefabs/Map/Room Map Prefabs";
+    internal const string Rooms="Assets/Prefabs/Map/Room Map Prefabs";
 
     [InitializeOnLoadMethod]
     private static void RestoreStartSceneAfterLaunch()

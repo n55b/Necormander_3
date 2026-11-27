@@ -183,7 +183,8 @@ public static class ProjectDataBake
         if(target==null || !field.type.IsInstanceOfType(target)) throw new InvalidDataException(field.path+" · 연결할 콘텐츠를 찾을 수 없습니다. "+value);
         return target;
     }
-    private static void Rewrite(string document,Func<Dictionary<string,string>,Dictionary<string,string>> next)
+    // 방 굽기(Assets/Editor/Map/ProjectRoomBake.cs)도 이 경로로 문서를 지운다. 비면 폴더까지 지운다.
+    public static void Rewrite(string document,Func<Dictionary<string,string>,Dictionary<string,string>> next)
     {
         var files=ProjectParameters.Snapshot(document);
         ProjectContentStore.Save(document,files,next(files),_=>{});

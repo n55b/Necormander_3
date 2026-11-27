@@ -30,23 +30,40 @@ public static class WorkshopRoomImport
         }
         catch(Exception e) { EditorUtility.DisplayDialog("방 가져오기",e.Message,"확인"); }
     }
-    private static GameObject SaveVariant(WorkshopRoom doc,WorkshopCatalog catalog,string path)
+    internal static GameObject SaveVariant(WorkshopRoom doc,WorkshopCatalog catalog,string path)
     {
         var scene=EditorSceneManager.NewPreviewScene();
         try
         {
             var source=catalog.FindRoom(doc.template);
             var clone=(GameObject)PrefabUtility.InstantiatePrefab(source.room.gameObject,scene);
-            var room=clone.GetComponent<RoomInstance>();
-            WorkshopGeometry.ApplyToGame(doc,room,catalog,(prefab,parent)=>(GameObject)PrefabUtility.InstantiatePrefab(prefab,parent));
-            foreach(var component in clone.GetComponentsInChildren<Component>(true))
-                if(component!=null && PrefabUtility.IsPartOfPrefabInstance(component))
-                    PrefabUtility.RecordPrefabInstancePropertyModifications(component);
+            Apply(doc,clone,catalog);
             var saved=PrefabUtility.SaveAsPrefabAsset(clone,path,out bool ok);
             if(!ok) throw new IOException("방 프리팹 저장에 실패했습니다.");
             return saved;
         }
         finally { EditorSceneManager.ClosePreviewScene(scene); }
+    }
+    // DATA 굽기: 원본 방 문서(id==template)를 원본 프리팹 자체에 쓴다.
+    internal static void Overwrite(WorkshopRoom doc,WorkshopCatalog catalog)
+    {
+        string path=AssetDatabase.GetAssetPath(catalog.FindRoom(doc.template).room.gameObject);
+        var contents=PrefabUtility.LoadPrefabContents(path);
+        try
+        {
+            Apply(doc,contents,catalog);
+            PrefabUtility.SaveAsPrefabAsset(contents,path,out bool ok);
+            if(!ok) throw new IOException("방 프리팹 저장에 실패했습니다. "+path);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(contents); }
+    }
+    // 실행 중 MapGenerator와 같은 ApplyToGame. 중첩 프리팹(소품·적)의 바뀐 값은 오버라이드로 기록해야 저장된다.
+    private static void Apply(WorkshopRoom doc,GameObject root,WorkshopCatalog catalog)
+    {
+        WorkshopGeometry.ApplyToGame(doc,root.GetComponent<RoomInstance>(),catalog,(prefab,parent)=>(GameObject)PrefabUtility.InstantiatePrefab(prefab,parent));
+        foreach(var component in root.GetComponentsInChildren<Component>(true))
+            if(component!=null && PrefabUtility.IsPartOfPrefabInstance(component))
+                PrefabUtility.RecordPrefabInstancePropertyModifications(component);
     }
     [MenuItem("Tools/제작실/원본 방 문서 검증")]
     public static void VerifySources()

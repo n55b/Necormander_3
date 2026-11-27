@@ -8,7 +8,7 @@ using UnityEditor;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-// Tools > DATA 굽기. 본체는 ProjectDataBake(Assets/Scripts/World/Workshop). 마일스톤 직전에 한 사람이 실행하고 한 커밋으로 올린다.
+// Tools > DATA 굽기. 본체는 ProjectDataBake(Assets/Scripts/World/Workshop)와 방 항목 ProjectRoomBake. 마일스톤 직전에 한 사람이 실행하고 한 커밋으로 올린다.
 public sealed class ProjectDataBakeWindow : EditorWindow
 {
     private List<ProjectDataBake.Item> items = new();
@@ -24,13 +24,14 @@ public sealed class ProjectDataBakeWindow : EditorWindow
     private void Reload()
     {
         blocker = ProjectDataBake.Blocker();
-        try { items = blocker == null ? ProjectDataBake.Plan() : new List<ProjectDataBake.Item>(); }
+        try { items = blocker == null ? ProjectDataBake.Plan().Concat(ProjectRoomBake.Plan()).ToList() : new List<ProjectDataBake.Item>(); }
         catch (Exception e) { blocker = e.Message; items = new List<ProjectDataBake.Item>(); }
     }
 
     private void OnGUI()
     {
         EditorGUILayout.HelpBox("DATA 문서의 값을 원본 에셋에 쓰고 그 문서를 지웁니다. 새 콘텐츠는 원본 옆에 새 에셋으로 만들고 옛 세이브 키 content_<id>를 남깁니다.\n" +
+            "원본 방의 덮어쓰기는 그 방 프리팹에, 새 방은 원본의 새 프리팹 변형으로 쓰고 던전 등록을 방 후보 목록으로 옮깁니다.\n" +
             "마일스톤 직전에 한 사람이 실행하고, 바뀐 DATA와 에셋을 한 커밋으로 올립니다.", MessageType.Info);
         if (GUILayout.Button("다시 읽기")) { result = null; Reload(); }
         if (blocker != null) { EditorGUILayout.HelpBox(blocker, MessageType.Warning); return; }
@@ -41,7 +42,8 @@ public sealed class ProjectDataBakeWindow : EditorWindow
             using (new EditorGUILayout.HorizontalScope())
             {
                 using (new EditorGUI.DisabledScope(item.error != null))
-                    item.selected = EditorGUILayout.ToggleLeft((item.variant ? "새 콘텐츠  " : "원본 수치  ") + item.title, item.selected && item.error == null);
+                    item.selected = EditorGUILayout.ToggleLeft((ProjectRoomBake.Owns(item.document) ? item.variant ? "새 방  " : "원본 방  " :
+                        item.variant ? "새 콘텐츠  " : "원본 수치  ") + item.title, item.selected && item.error == null);
                 bool shown = open.Contains(item.document);
                 if (GUILayout.Button(shown ? "접기" : "바뀔 값 " + item.changes.Count, GUILayout.Width(90)))
                     if (shown) open.Remove(item.document); else open.Add(item.document);
@@ -59,7 +61,15 @@ public sealed class ProjectDataBakeWindow : EditorWindow
             if (GUILayout.Button($"선택한 {chosen.Length}개 굽기", GUILayout.Height(28)) &&
                 EditorUtility.DisplayDialog("DATA 굽기", $"{chosen.Length}개 문서를 에셋에 쓰고 DATA에서 지웁니다. 되돌릴 때는 Git을 사용합니다.", "굽기", "취소"))
             {
-                try { result = ProjectDataBake.Execute(chosen); }
+                // 수치를 먼저 구우면 DATA가 바뀌므로 Git 확인은 처음 한 번만 한다.
+                var rooms = chosen.Where(ProjectRoomBake.Owns).ToArray();
+                var values = chosen.Except(rooms).ToArray();
+                try
+                {
+                    result = string.Join("\n", new[] {
+                        values.Length > 0 ? ProjectDataBake.Execute(values) : null,
+                        rooms.Length > 0 ? ProjectRoomBake.Execute(rooms, requireCleanGit: values.Length == 0) : null }.Where(r => r != null));
+                }
                 catch (Exception e) { result = "굽기 실패: " + e.Message; Debug.LogException(e); }
                 Reload();
             }

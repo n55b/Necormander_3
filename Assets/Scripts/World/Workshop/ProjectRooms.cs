@@ -19,7 +19,7 @@ public static class ProjectRooms
     private static WorkshopCatalog runtimeCatalog;
     private static string Document(string id) => Guid.TryParseExact(id,"N",out _) ? DirectoryName+"/"+id :
         throw new InvalidDataException("잘못된 방 ID: "+id);
-    internal static string[] Ids()
+    public static string[] Ids()
     {
         string root = Path.Combine(ProjectContentStore.Root,DirectoryName);
         return Directory.Exists(root) ? Directory.EnumerateDirectories(root).Where(HasFiles).Select(Path.GetFileName)
@@ -27,7 +27,7 @@ public static class ProjectRooms
     }
     public static bool HasFiles(string folder)=>File.Exists(Path.Combine(folder,Header)) ||
         Directory.EnumerateFiles(folder,"*.json",SearchOption.AllDirectories).Any();
-    internal static Dictionary<string,string> Snapshot(string id) =>
+    public static Dictionary<string,string> Snapshot(string id) =>
         ProjectContentStore.WithDocument(Document(id),(folder,_)=>ProjectContentStore.Read(folder));
     internal static WorkshopRoom Description(string id)=>ProjectContentStore.WithDocument(Document(id),(folder,_)=>{
         var room=JsonUtility.FromJson<WorkshopRoom>(File.ReadAllText(Path.Combine(folder,Header)));
@@ -36,7 +36,7 @@ public static class ProjectRooms
     });
     public static void ValidateForBuild(string id, WorkshopCatalog catalog) => Decode(id,Snapshot(id),catalog);
 
-    internal static WorkshopRoom Template(WorkshopCatalog.Template template)
+    public static WorkshopRoom Template(WorkshopCatalog.Template template)
     {
         var room = WorkshopRoom.Create(template);
         room.id = template.id; room.title = template.title;
@@ -76,7 +76,7 @@ public static class ProjectRooms
         return files;
     }
 
-    internal static WorkshopRoom Decode(string id, Dictionary<string,string> files, WorkshopCatalog catalog)
+    public static WorkshopRoom Decode(string id, Dictionary<string,string> files, WorkshopCatalog catalog)
     {
         if (!files.TryGetValue(Header,out string header)) throw new InvalidDataException("방 설명 파일을 찾을 수 없습니다. "+id);
         var doc=JsonUtility.FromJson<WorkshopRoom>(header);
@@ -143,9 +143,11 @@ public static class ProjectRooms
         Reset();
         return files;
     }
+    // 에디터 검사(ProjectRoomBakeCheck)가 방 문서를 쓰는 입구. 충돌 선택이 필요한 저장은 위 Save를 쓴다.
+    public static void Publish(WorkshopRoom room, WorkshopCatalog catalog) => Save(room,Snapshot(room.id),catalog,out _);
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    internal static void Reset() { byPrefab=null; runtimeCatalog=null; }
+    public static void Reset() { byPrefab=null; runtimeCatalog=null; }
 
     internal static void Load()
     {
@@ -202,9 +204,9 @@ public static class ProjectRooms
             choices.variants.All(v=>v.exits.Any(e=>e.direction==d)));
         return inherited.Concat(extra).Distinct().ToArray();
     }
-    internal static bool IsRegistered(WorkshopRoom doc) =>
+    public static bool IsRegistered(WorkshopRoom doc) =>
         File.Exists(Path.Combine(ProjectContentStore.Root,"WORLD","POOLS",doc.template,doc.id+".json"));
-    internal static void Register(WorkshopRoom doc)
+    public static void Register(WorkshopRoom doc)
     {
         var basis = ProjectContentStore.WithDocument("WORLD/POOLS/"+doc.template,(folder,_)=>ProjectContentStore.Read(folder));
         var updated=new Dictionary<string,string>(basis) { [doc.id+".json"]=ProjectContentStore.Json(new JObject{["room"]=doc.id}) };

@@ -201,6 +201,7 @@ if ((Want @('WorkshopPlayMode', 'LevelWorkshop'))) {
 }
 if ((Want @('ProjectContent'))) {
     Invoke-EditorCheck 'ProjectDataBakeCheck.Run'
+    Invoke-EditorCheck 'ProjectRoomBakeCheck.Run'
     & (Join-Path $source 'Tools/Verification/Invoke-ProjectRoomTeam.ps1') -Sandbox $sandbox -UnityEditor $UnityEditor -Results $logs
     $results.Add("PASS project content Ctrl+S, save button, two Git checkouts and Windows dungeon | $logs")
 }
