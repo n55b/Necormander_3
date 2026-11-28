@@ -63,7 +63,6 @@ public sealed partial class RoomWorkshopWindow
         var search=Input("번역 검색",translationSearch,12,40,285,24);
         search.onEndEdit.AddListener(query=>{if(query==translationSearch)return;translationSearch=query;translationPage=0;Draw(page);});
         Btn("새 번역",328,40,128,24,()=>{creatingTranslation=true;newTranslationKey="";newTranslationText="";Draw(page);});
-        Btn("언어 목록",510,40,110,24,()=>{translationTable=null;Draw(page);});
         bool Matches(string text)=>text?.IndexOf(translationSearch,StringComparison.OrdinalIgnoreCase)>=0;
         var entries=translationTable.Values.Where(e=>Matches(e.Key)||Matches(e.Value)).OrderBy(e=>e.Key,StringComparer.Ordinal).ToArray();
         int pages=Math.Max(1,(entries.Length+7)/8);

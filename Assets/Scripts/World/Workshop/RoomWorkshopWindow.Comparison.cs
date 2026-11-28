@@ -31,10 +31,12 @@ public sealed partial class RoomWorkshopWindow
         }
         Show("편집 기준 방",comparison,7);
         Show("편집 중인 방",preview,323);
-        Btn("편집으로",495,299,130,23,()=>{
-            comparison.Dispose();comparison=null;preview.ResizeFrame(WorkshopPreview.Width,WorkshopPreview.Height);
-            RefreshSelection();preview.MarkStart(start);Draw(Page.Map);
-        },true);
+        Btn("편집으로",495,299,130,23,CloseComparison,true);
+    }
+    private void CloseComparison()
+    {
+        comparison.Dispose();comparison=null;preview.ResizeFrame(WorkshopPreview.Width,WorkshopPreview.Height);
+        RefreshSelection();preview.MarkStart(start);Draw(Page.Map);
     }
     private void SelectedObject()
     {

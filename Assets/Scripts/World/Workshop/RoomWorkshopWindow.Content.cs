@@ -40,9 +40,7 @@ public sealed partial class RoomWorkshopWindow
     {
         if(pages[(int)tile.open].Open is Action open){ open(); return; }   // 전용 화면(상태이상·아이템)
         if(tile.open!=Page.Parameters){ Navigate(tile.open); return; }
-        // 모든 수치는 이전 항목을 그대로 열지만, 영역 타일이 남긴 영역 필터는 지운다(그대로면 '모든 수치'가 한 영역만 보인다).
-        if(tile.group==null && contentTiles.Any(t=>t.group!=null && t.group==dataSearch)){ dataSearch=""; dataPage=0; }
-        OpenParameters(tile.group);
+        OpenParameters(tile.group ?? "");   // 수치 타일은 늘 그 영역(모든 수치는 전체)의 에셋 목록을 연다. 하던 항목은 최근 칩·뒤로가기로 연다
     }
     // 소유 화면으로 연다: 상태이상 원본은 상태이상 화면, 아이템(변형 포함)은 아이템 화면, 그 밖은 모든 수치.
     private void OpenContent(string document)

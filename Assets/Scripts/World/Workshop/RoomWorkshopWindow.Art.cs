@@ -91,7 +91,7 @@ public sealed partial class RoomWorkshopWindow
                 });
             }
         }
-        Btn("목록",12,300,80,23,()=>{DisposeArt();art=null;currentArt=null;nextArt=null;Draw(page);});
+        if(nextArt!=null) Btn("교체 취소",12,300,80,23,()=>OpenArt(art));   // 목록은 뒤로가기·아트 원본 탭. 교체본이 있으면 뒤로가기가 막는다
         Btn("원본 위치",106,300,104,23,()=>Application.OpenURL(new Uri(System.IO.Path.GetDirectoryName(WorkshopArtSource.Source(art))).AbsoluteUri));
         Btn("ARTIST 원본 저장",445,300,173,23,SaveArt,true);
     }

@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 // 제작실 아이템 화면 검사. WorkshopPlayModeCheck(Editor 어셈블리)가 상태이상 검사 다음에 부른다.
 // DraftStore·ProjectParameters·WorkshopUI 같은 internal 멤버를 쓰므로 런타임 어셈블리에 둔다(WorkshopStatusCheck와 같다).
-// 1~8은 목록·상세, 9~14는 생성·이름·삭제·영구 삭제·복원·표 보기·크게 보기, 15는 시험 지급과 복귀, 16은 헤더 탭의 도메인 이동이다. 검사가 만든 새 아이템은 지우고 원본 삭제는 복원한다.
+// 1~8은 목록·상세, 9~14는 생성·이름·삭제·영구 삭제·복원·표 보기·크게 보기, 15는 시험 지급과 복귀, 16은 헤더 탭의 도메인 이동, 17은 뒤로가기·위치 표시다. 검사가 만든 새 아이템은 지우고 원본 삭제는 복원한다.
 // 모든 변경을 되돌리고 아이템 상세를 연 채로 끝난다(이어지는 UI 해상도 검사가 "Item detail"을 본다).
 public static class WorkshopItemCheck
 {
@@ -251,6 +251,7 @@ public static class WorkshopItemCheck
         yield return WorkshopStatusCheck.Workshop();
         Require(GameObject.Find("Item detail")!=null && Draft(cloth).live,"returning reopens the same item");
         Require(Mathf.Abs(((RectTransform)Detail()).anchoredPosition.y-scrolled)<1,"returning restores the detail scroll");
+        Require(WorkshopStatusCheck.Find("뒤로")?.interactable==true,"the back history survives the trial round trip");
         Require(!DraftStore.Unsaved.Any(),"item check leaves nothing unsaved");
         Debug.Log("[Workshop items] PASS trial loadout, toolbar give and return");
         // 16. 게임 콘텐츠 헤더 탭: 전용 화면(상태이상·아이템)만 탭이고, 탭으로 도메인을 오가도 미저장 초안이 남는다
@@ -271,7 +272,45 @@ public static class WorkshopItemCheck
         DraftStore.Revert(status);
         Require(!DraftStore.Unsaved.Any() && cloth.MaxStack==stack,"tab check leaves nothing unsaved");
         Debug.Log("[Workshop items] PASS content header tabs keep drafts across domains");
+        // 17. 뒤로가기: [← 뒤로]·Esc·마우스 뒤로가 직전 화면의 항목·쪽·검색·스크롤을 되살린다. 모든 수치의 [에셋 목록]은 없다
+        GameObject.Find("Item detail").GetComponent<ScrollRect>().verticalNormalizedPosition=.5f; yield return Frames();
+        scrolled=((RectTransform)Detail()).anchoredPosition.y;
+        Require(scrolled>0 && Location().Contains("아이템"),"item screen shows where it is ("+Location()+")");
+        Click("처음 화면"); yield return Frames();
+        Click("게임 콘텐츠"); yield return Frames();
+        Click("콘텐츠 수치"); yield return Frames();
+        Click("다음"); yield return Frames();
+        Click(AssetRows()[0].name); yield return Frames();
+        Require(WorkshopStatusCheck.Find("에셋 목록")==null && GameObject.Find("데이터 검색")!=null,"value screen has no asset list button");
+        Click("뒤로"); yield return Frames();
+        Require(Texts().Any(t=>t.text.StartsWith("2 / ",StringComparison.Ordinal)) && Search()=="" && AssetRows().Length>0,"back returns to the same asset list page");
+        yield return Press(Key.Escape);
+        Require(WorkshopStatusCheck.Find("콘텐츠 수치")?.gameObject.activeInHierarchy==true,"Esc goes back to the content hub");
+        Click("소환수"); yield return Frames();
+        Require(Search()=="BALANCE/MINION" && Location().Contains("소환수"),"domain tile opens its filtered list ("+Location()+")");
+        var minion=AssetRows()[0].name;
+        Click(minion); yield return Frames();
+        string title=minion.Substring(minion.IndexOf("   ",StringComparison.Ordinal)+3);
+        Require(Location().EndsWith(" › "+title,StringComparison.Ordinal),"header shows content › minion › "+title+" ("+Location()+")");
+        capture?.Invoke("17");
+        yield return MouseBack();
+        Require(Search()=="BALANCE/MINION" && AssetRows().Any(r=>r.name==minion),"mouse back restores the filtered list");
+        yield return MouseBack();
+        Require(WorkshopStatusCheck.Find("소환수")?.gameObject.activeInHierarchy==true,"mouse back reaches the hub");
+        Click("뒤로"); yield return Frames();
+        Require(GameObject.Find("Card")!=null,"back reaches the home screen");
+        Click("뒤로"); yield return Frames();
+        Require(GameObject.Find("Item detail")!=null && Draft(cloth).live && Rows().Any(r=>r.name=="아이템/"+clothId),"back reopens the item on its list page");
+        Require(Mathf.Abs(((RectTransform)Detail()).anchoredPosition.y-scrolled)<1,"back restores the item detail scroll");
+        Require(!DraftStore.Unsaved.Any(),"back check leaves nothing unsaved");
+        Debug.Log("[Workshop items] PASS back button, Esc, mouse back and location");
     }
+    private static string Location()=>GameObject.Find("위치")?.GetComponent<TMP_Text>().text ?? "";
+    private static string Search()=>GameObject.Find("데이터 검색").GetComponent<TMP_InputField>().text;
+    // 모든 수치 에셋 목록의 행: 이름이 "<영역>   <제목>"이고 위에서부터 정렬한다.
+    private static Button[] AssetRows()=>Object.FindObjectsByType<Button>(FindObjectsSortMode.None)
+        .Where(b=>b.gameObject.activeInHierarchy && b.name.Contains("   ") && b.transform.parent.name=="Workspace")
+        .OrderBy(b=>-((RectTransform)b.transform).anchoredPosition.y).ToArray();
     private static string[] Cards()=>Detail().Cast<Transform>().Where(t=>t.name.StartsWith("효과/",StringComparison.Ordinal) && t.GetComponent<Image>()!=null && !t.GetComponent<Button>())
         .OrderBy(t=>-((RectTransform)t).anchoredPosition.y).Select(t=>t.name.Substring(3)).ToArray();
     // 표 보기의 이름 칸 버튼("표/<GUID>"), 위에서 아래 순.
@@ -306,20 +345,23 @@ public static class WorkshopItemCheck
         Require(found.Length==1,found.Length+" '"+child+"' under '"+parent+"'");
         return found[0];
     }
-    private static IEnumerator Press(params Key[] keys)
+    private static IEnumerator Press(params Key[] keys)=>Send<Keyboard,KeyboardState>(new KeyboardState(keys),new KeyboardState());
+    private static IEnumerator MouseBack()=>Send<Mouse,MouseState>(new MouseState().WithButton(MouseButton.Back),new MouseState());
+    // 가상 장치를 붙여 누름·뗌 상태를 한 번씩 보낸다.
+    private static IEnumerator Send<TDevice,TState>(TState down,TState up) where TDevice:InputDevice where TState:struct,IInputStateTypeInfo
     {
         var previous=InputSystem.settings;
         var settings=Object.Instantiate(previous);
         settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;
         settings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
         InputSystem.settings=settings;
-        var keyboard=InputSystem.AddDevice<Keyboard>();
+        var device=InputSystem.AddDevice<TDevice>();
         try
         {
-            InputSystem.QueueStateEvent(keyboard,new KeyboardState(keys)); yield return Frames();
-            InputSystem.QueueStateEvent(keyboard,new KeyboardState()); yield return Frames();
+            InputSystem.QueueStateEvent(device,down); yield return Frames();
+            InputSystem.QueueStateEvent(device,up); yield return Frames();
         }
-        finally { InputSystem.RemoveDevice(keyboard); InputSystem.settings=previous; Object.Destroy(settings); }
+        finally { InputSystem.RemoveDevice(device); InputSystem.settings=previous; Object.Destroy(settings); }
     }
     private static void Click(string name)=>WorkshopStatusCheck.Click(name);
     private static IEnumerator Frames(int count=2)=>WorkshopStatusCheck.Frames(count);

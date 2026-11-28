@@ -53,5 +53,5 @@ public sealed partial class RoomWorkshopWindow
     }
     private void SaveFloorShortcut(){ if(routeDraft!=null) return; floorSettings.Save(); Say("층 설정을 저장했습니다."); }
     private void ResetParameters(){ dataEntry=null; dataField=null; dataCatalog=null; paramDraft=null; }
-    private void ResetPages(){ foreach(var entry in pages) entry.Reset?.Invoke(); }
+    private void ResetPages(){ foreach(var entry in pages) entry.Reset?.Invoke(); ForgetHistory(); }
 }

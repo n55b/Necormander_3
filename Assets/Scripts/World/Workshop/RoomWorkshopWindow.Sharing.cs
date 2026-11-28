@@ -115,7 +115,6 @@ public sealed partial class RoomWorkshopWindow
             Btn("내 버전 사용",252,242,165,25,()=>{part.useLocal=true;Draw(page);},part.useLocal);
             Btn("팀 버전 사용",434,242,182,25,()=>{part.useLocal=false;Draw(page);},!part.useLocal);
         }
-        Btn("목록으로",12,302,107,23,()=>{review=null;Draw(page);});
         if(ProjectContentStore.Authoring)
             Btn("선택한 내용 DATA에 적용",145,302,217,23,()=>{
                 review.Publish();review=null;Draw(page);Say("선택한 방·층·마을을 프로젝트에 저장했습니다.");
@@ -152,7 +151,7 @@ public sealed partial class RoomWorkshopWindow
         rememberedFloor=roomFloor=floorSettings=null; rememberedCell=floorCell=null;
         openFloors.TryGetValue(entry.id,out floorSettings);
         rememberedSelection=Array.Empty<string>(); rememberedStart=start=null;
-        selection.Clear(); stamp.Clear(); dirty=false; persisted=null; review=null;
+        selection.Clear(); stamp.Clear(); dirty=false; persisted=null; review=null; ForgetHistory();
         shareView=ShareView.Workspaces; sharePage=0;
         Draw(page); Say(entry.title+" · 작업 공간을 열었습니다.");
     }

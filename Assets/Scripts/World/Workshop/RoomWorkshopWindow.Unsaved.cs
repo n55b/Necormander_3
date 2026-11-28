@@ -23,7 +23,7 @@ public sealed partial class RoomWorkshopWindow
     {
         unsavedButton=null;
         if(!ProjectContentStore.Authoring || page==Page.Map) return;
-        unsavedButton=Btn("미저장",523,5,59,20,()=>{unsavedOpen=!unsavedOpen;Draw(page);},unsavedOpen,"미저장");
+        unsavedButton=Btn("미저장",BackX-62,5,59,20,()=>{unsavedOpen=!unsavedOpen;Draw(page);},unsavedOpen,"미저장");
         RefreshUnsaved();
     }
     private void RefreshUnsaved()

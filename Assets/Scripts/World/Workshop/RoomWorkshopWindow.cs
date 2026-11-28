@@ -109,10 +109,12 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if (content!=null) { content.gameObject.SetActive(false); Destroy(content.gameObject); }
         content=WorkshopUI.Box(canvas.transform,"Workspace",0,0,640,360,WorkshopUI.Ink).rectTransform;
         WorkshopUI.Frame(content,"Header",0,0,640,30);
-        DrawHeader();
+        int tabsEnd=DrawHeader();
         Btn("메뉴",586,5,46,20,Leave);
+        Btn("← 뒤로",BackX,5,50,20,Back,false,"뒤로").interactable=CanGoBack();
         DrawUnsavedButton();
         pages[(int)page].Draw();
+        DrawLocation(tabsEnd);                      // 화면이 헤더 줄에 둔 버튼(방 편집의 비교·저장 등)을 피한다
         if(page!=Page.Desk) Refocus(kept);          // 작업대는 DrawLibrary가 기존 규칙(검색→'검색' 치환, 기본 포커스)으로 고른다
         if(areaMenuOpen) DrawAreaMenu();            // 그리는 순서: 헤더 → 페이지 → 영역·미저장 목록 → 모달 → 상태 줄
         if(unsavedOpen) DrawUnsavedList();
@@ -125,6 +127,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if (page==Page.Map)
             WorkshopUI.Label(content,"휠 확대 · 가운데 버튼으로 이동 · Ctrl+S 저장 · F6 시험",9,344,385,15);
     }
+    private const int BackX=532;   // [← 뒤로]: 메뉴 버튼 왼쪽. 미저장은 그 왼쪽, 방 편집의 플레이는 BackX 앞에서 끝난다
     private Button Btn(string title,int x,int y,int w,int h,Action action,bool selectedTab=false,string id=null) =>
         WorkshopUI.Button(content,title,x,y,w,h,()=>Safe(action),selectedTab,id);
     private void Safe(Action action)
@@ -152,7 +155,7 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
     }
     private void Leave()=>ConfirmUnsaved(()=>
     {
-        CloseMap(); WorkshopTrial.Draft=null; WorkshopTrial.Undo.Clear(); WorkshopTrial.Redo.Clear();
+        CloseMap(); WorkshopTrial.Draft=null; WorkshopTrial.Undo.Clear(); WorkshopTrial.Redo.Clear(); ForgetHistory();
         UnityNote.SceneLoader.Load("StartScene");
     });
     private void DrawLibrary(string deskControl)
@@ -368,16 +371,16 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
                 Save(); roomFloor.Attach(floorCell.Value,Doc); roomFloor.Save();
                 Say("이 방을 시험 층에 연결했습니다.");
             });
-        Btn("저장",381,5,44,20,Save);
-        Btn("비교",345,5,33,20,OpenComparison);
+        Btn("저장",369,5,44,20,Save);
+        Btn("비교",333,5,33,20,OpenComparison);
         if(ProjectContentStore.Authoring && !floorCell.HasValue && Doc.id!=Doc.template && catalog.FindRoom(Doc.template).inPool)
             Btn(ProjectRooms.IsRegistered(Doc) ? "등록 해제" : "던전 등록",325,31,82,20,()=>{
                 if(ProjectRooms.IsRegistered(Doc))
                 { ProjectRooms.Unregister(Doc); Draw(page); Say("일반 던전 후보에서 뺐습니다. 다음 방 생성부터 적용"); }
                 else { Save(); ProjectRooms.Register(Doc); Draw(page); Say("일반 던전의 방 후보에 등록했습니다."); }
             });
-        Btn("공유본",430,5,58,20,Export);
-        Btn("플레이",493,5,83,20,Play,true);
+        Btn("공유본",416,5,58,20,Export);
+        Btn("플레이",477,5,52,20,Play,true);
         WorkshopUI.Frame(content,"Toolbox",491,36,143,291);
         DrawToolChoices();
         if(tool==Tool.Auto)
@@ -601,6 +604,14 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if(pendingConfirm!=null){ if(keys!=null && keys.escapeKey.wasPressedThisFrame){ pendingConfirm=null; Draw(page); } return; }   // 미저장 확인 모달
         if(areaMenuOpen){ if(keys!=null && keys.escapeKey.wasPressedThisFrame){ areaMenuOpen=false; Draw(page); } return; }        // 영역 전환 목록: 지도 입력도 멈춘다
         var entry=pages[(int)page];
+        // Esc(지도 밖)·마우스 뒤로: 맨 위 팝업 → 미저장 목록 → 인라인 편집이 없을 때 뒤로. 지도의 Esc는 서랍·전투 설정을 닫는 지도 입력이 그대로 쓴다.
+        bool escape=keys!=null && keys.escapeKey.wasPressedThisFrame && page!=Page.Map;
+        if(escape || Mouse.current?.backButton.wasPressedThisFrame==true)
+        {
+            if(WorkshopUI.CloseOverlay()) return;
+            if(unsavedOpen){ unsavedOpen=false; Draw(page); return; }
+            if(!EditingInline()){ Safe(Back); return; }
+        }
         // 키보드가 없어도(검사가 가상 키보드를 뺀 뒤) 지도 포인터 입력은 돌아야 한다.
         if(keys==null){ entry.Keys?.Invoke(); return; }
         bool ctrl=keys.ctrlKey.isPressed, shift=keys.shiftKey.isPressed;
@@ -608,11 +619,6 @@ public sealed partial class RoomWorkshopWindow : MonoBehaviour
         if(page!=Page.Map)
         {
             if(ctrl && !shift && keys.sKey.wasPressedThisFrame && entry.Save!=null){CommitPendingInputs();Safe(entry.Save);return;}
-            if(keys.escapeKey.wasPressedThisFrame)                 // 맨 위 팝업부터 닫는다
-            {
-                if(WorkshopUI.CloseOverlay()) return;
-                if(unsavedOpen){ unsavedOpen=false; Draw(page); return; }
-            }
             if(!InputFocused())
             {
                 var draft=entry.Draft?.Invoke();

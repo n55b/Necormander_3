@@ -70,10 +70,6 @@ public sealed partial class RoomWorkshopWindow
             conversation.order.Insert(lineIndex,key);
             conversation.lines.Add(key,new DialogueLine{id=conversation.id,text=""});dialogueDirty=true;Draw(page);
         });
-        Btn("목록",12,299,69,23,()=>{
-            if(dialogueDirty){Say("대사를 저장하거나 변경 취소를 눌러 주세요.");return;}
-            conversation=null;Draw(page);
-        });
         Btn("변경 취소",89,299,99,23,()=>{conversation=null;dialogueDirty=false;Draw(page);});
         Btn("프로젝트에 저장",460,299,160,23,SaveDialogue,true);
     }

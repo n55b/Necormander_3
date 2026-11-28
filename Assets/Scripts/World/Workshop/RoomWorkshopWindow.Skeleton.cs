@@ -42,11 +42,11 @@ public sealed partial class RoomWorkshopWindow
         return button;
     }
 
-    // 상세 ScrollRect를 만들고 content를 돌려준다. key가 직전과 같으면 그 스크롤을, 시험 복귀 중이면 WorkshopSession.Scroll을 되살린다.
+    // 상세 ScrollRect를 만들고 content를 돌려준다. key가 직전과 같으면 그 스크롤을, 시험 복귀·뒤로가기 중이면 그 자리의 스크롤(restoreScroll)을 되살린다.
     private RectTransform Detail(string key,string id)
     {
         var body=WorkshopUI.Scroll(content,id,DetailX,BodyY,DetailW,DetailH,y=>detailScrollY=y,out _);
-        detailRestore=restoringScroll ? WorkshopSession.Scroll : key==detailKey ? detailScrollY : 0;
+        detailRestore=restoringScroll ? restoreScroll : key==detailKey ? detailScrollY : 0;
         detailKey=key;
         return body;
     }

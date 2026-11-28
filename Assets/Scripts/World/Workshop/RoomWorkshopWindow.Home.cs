@@ -30,8 +30,8 @@ public sealed partial class RoomWorkshopWindow
         Navigate(FirstPage(area));
     }
 
-    // 헤더: 첫 화면은 저장 위치·프로젝트 연결, 영역 화면은 [처음 화면]·영역 전환·그 영역의 탭.
-    private void DrawHeader()
+    // 헤더: 첫 화면은 저장 위치·프로젝트 연결, 영역 화면은 [처음 화면]·영역 전환·그 영역의 탭. 돌려주는 값은 위치 표시가 시작할 x다.
+    private int DrawHeader()
     {
         var area=pages[(int)page].Area;
         if(area==null)
@@ -41,7 +41,7 @@ public sealed partial class RoomWorkshopWindow
 #if LEVEL_WORKSHOP && !UNITY_EDITOR
             Btn("프로젝트 연결",99,5,95,20,OpenConnection);
 #endif
-            return;
+            return 200;
         }
         Btn("처음 화면",7,5,58,20,()=>Navigate(Page.Home));
         Btn(areas[(int)area.Value].caption+" ▼",68,5,76,20,()=>{areaMenuOpen=!areaMenuOpen;Draw(page);},areaMenuOpen,"영역");
@@ -53,11 +53,14 @@ public sealed partial class RoomWorkshopWindow
             var tab=pages[i].Tab;
             if(pages[i].Area!=area || tab.caption==null) continue;
             var target=(Page)i; var open=pages[i].Open;
-            // 전용 화면 탭(Open)은 DraftStore 초안을 다시 잡으므로 도메인 사이를 오가도 미저장 초안이 남는다
-            var button=Btn(tab.caption,x,5,tab.width,20,open ?? (()=>Navigate(target)),lit==target,tab.id);
+            // 전용 화면 탭(Open)은 DraftStore 초안을 다시 잡으므로 도메인 사이를 오가도 미저장 초안이 남는다.
+            // 보고 있는 화면의 탭을 다시 누르면 그 목록으로 간다(대사·아트·번역의 옛 [목록] 버튼 자리). 다른 화면에서 누르면 하던 항목이 그대로 열린다.
+            Action go=open ?? (page==target ? (Action)(()=>Restore(new Spot{page=target})) : ()=>Navigate(target));
+            var button=Btn(tab.caption,x,5,tab.width,20,go,lit==target,tab.id);
             if(open!=null) button.interactable=ProjectContentStore.Authoring;   // 허브 타일과 같다
             x+=tab.width+3;
         }
+        return x+3;
     }
     // 영역 전환 목록. 그리는 순서는 미저장 목록과 같은 자리(페이지 위)다.
     private void DrawAreaMenu()

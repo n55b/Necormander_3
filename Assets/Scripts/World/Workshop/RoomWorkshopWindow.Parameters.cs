@@ -40,7 +40,8 @@ public sealed partial class RoomWorkshopWindow
         return field;
     }
 
-    // filter가 있으면 그 영역의 에셋 목록부터 보인다(허브 타일). 없으면 이전 항목을 그대로 연다. 카탈로그는 들어갈 때마다 다시 만들어 새 변형을 잡는다.
+    // filter가 있으면 그 검색어의 에셋 목록부터 보인다(허브 타일, ""은 전체). 없으면 이전 항목을 그대로 연다. 카탈로그는 들어갈 때마다 다시 만들어 새 변형을 잡는다.
+    // 항목에서 목록으로는 뒤로가기로 간다(옛 [에셋 목록]). 초안은 DraftStore에 남으므로 저장하지 않고 떠나도 헤더 '미저장 n'이 알린다.
     private void OpenParameters(string filter=null)
     {
         if(filter!=null){ dataEntry=null; paramDraft=null; dataField=null; creatingContent=false; dataSearch=filter; dataPage=0; }
@@ -165,8 +166,6 @@ public sealed partial class RoomWorkshopWindow
             }
             Btn("프로젝트에 저장",480,299,145,23,SaveParameters,true).interactable=blocked==null;
             Btn("프리셋",208,299,74,23,()=>{showPresets=true;presetPage=0;Draw(page);});
-            // 초안은 DraftStore에 남으므로 저장하지 않고 목록으로 가도 된다. 헤더 '미저장 n'이 알린다.
-            Btn("에셋 목록",380,299,92,23,()=>{dataEntry=null;paramDraft=null;dataPage=0;dataSearch="";Draw(page);});
             Btn("변경 취소",288,299,85,23,()=>{DraftStore.Revert(paramDraft);Draw(page);});
         }
         const int size=8;

@@ -323,7 +323,7 @@ public sealed partial class ProjectRoomVerification : MonoBehaviour
             FindObjectsByType<Button>(FindObjectsSortMode.None).Single(b=>b.name.StartsWith("maxStack   ")).onClick.Invoke();
             GameObject.Find("설정값").GetComponent<TMPro.TMP_InputField>().text="23";
             Click("처음 화면");Click("레벨");Click("모두 저장");
-            Click("처음 화면");Click("게임 콘텐츠");Click("콘텐츠 수치");Click("에셋 목록");
+            Click("처음 화면");Click("게임 콘텐츠");Click("콘텐츠 수치");   // 수치 타일은 늘 에셋 목록을 연다(옛 [에셋 목록])
             GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("Growth Reward Registry");
             Click("BALANCE/REGISTRY   Growth Reward Registry");
             GameObject.Find("데이터 검색").GetComponent<TMPro.TMP_InputField>().onEndEdit.Invoke("startingItem");

@@ -40,7 +40,7 @@ public sealed partial class RoomWorkshopWindow
         if(Doc.waves.Count>0)
         {
             Btn("앞으로",125,202,65,23,()=>MoveWave(-1)).interactable=waveIndex>0;
-            Btn("뒤로",195,202,65,23,()=>MoveWave(1)).interactable=waveIndex+1<Doc.waves.Count;
+            Btn("뒤로",195,202,65,23,()=>MoveWave(1),false,"웨이브 뒤로").interactable=waveIndex+1<Doc.waves.Count;
             Btn("웨이브 삭제",269,202,98,23,()=>{
                 before=Doc.Serialize(); Doc.waves.RemoveAt(waveIndex); FinishEncounterEdit();
             });
