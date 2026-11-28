@@ -78,7 +78,9 @@ public sealed partial class RoomWorkshopWindow
     };
     // 같은 화면인가: 목록과 그 항목 화면이 갈리는 페이지(모든 수치·대사·아트·번역·공유)는 항목까지 본다.
     // 목록-상세가 한 화면인 상태이상·아이템은 행을 바꿔도 기록하지 않는다(돌아가면 떠날 때의 행이 열린다).
-    private static bool SameScreen(Spot a,Spot b)=>a.page==b.page &&
+    // 방 비교·연결 미리보기는 방 편집의 한 상태다: [편집으로]로 돌아와도 기록이 쌓이지 않고, 뒤로가기는 Back이 닫기로 처리한다.
+    private static Page Screen(Page p)=>p is Page.Compare or Page.Passage ? Page.Map : p;
+    private static bool SameScreen(Spot a,Spot b)=>Screen(a.page)==Screen(b.page) &&
         (a.page is not (Page.Parameters or Page.Dialogue or Page.Art or Page.Translations or Page.Shared) || a.item==b.item);
 
     // 화면 이동 기록: 한 번의 클릭이 Draw를 여러 번 불러도(Navigate 뒤 SelectContent 등) 프레임 끝의 화면만 비교한다.
@@ -105,7 +107,6 @@ public sealed partial class RoomWorkshopWindow
         if(page is Page.Passage or Page.Compare)
         {
             if(page==Page.Passage) ClosePassage(); else CloseComparison();
-            if(history.Count>0 && history[^1].page==Page.Map) history.RemoveAt(history.Count-1);
             settled=Here(); return;
         }
         hasSettled=false;                      // 되살리는 동안 그리는 [뒤로]는 남은 기록만 센다
@@ -114,6 +115,7 @@ public sealed partial class RoomWorkshopWindow
             while(history.Count>0)
             {
                 var spot=history[^1]; history.RemoveAt(history.Count-1);
+                if(SameScreen(spot,Here())) continue;   // 건너뛴 자리 뒤에 남은 지금 화면: 누른 뒤로가 제자리에서 끝나지 않게
                 bool done;
                 try { done=Restore(spot); }
                 catch { history.Add(spot); throw; }
@@ -151,7 +153,7 @@ public sealed partial class RoomWorkshopWindow
                     dataSearch=s.search ?? ""; dataPage=s.listPage; Draw(page);
                     break;
                 case Page.Map: case Page.Compare: case Page.Passage:
-                    if(Doc==null) return false;
+                    if(Doc==null || Doc.id!=s.item) return false;   // 그 뒤 다른 방을 열었다
                     if(page!=Page.Map) OpenMap(false);
                     break;
                 case Page.Dialogue:
@@ -163,7 +165,12 @@ public sealed partial class RoomWorkshopWindow
                     }
                     Navigate(Page.Dialogue); break;
                 case Page.Art:
-                    if(s.item!=null && art?.source!=s.item){ OpenRecent(Area.Art,s.item); break; }
+                    if(s.item!=null && art?.source!=s.item)
+                    {
+                        artEntries??=WorkshopArtSource.Entries();
+                        if(Array.Find(artEntries,e=>e.source==s.item)==null) return false;   // 원본 파일이 사라졌다
+                        OpenRecent(Area.Art,s.item); break;
+                    }
                     if(s.item==null && art!=null)
                     {
                         if(nextArt!=null) throw new InvalidOperationException("교체본을 저장하거나 교체 취소를 눌러 주세요.");
