@@ -46,14 +46,16 @@ public sealed partial class RoomWorkshopWindow
         Btn("처음 화면",7,5,58,20,()=>Navigate(Page.Home));
         Btn(areas[(int)area.Value].caption+" ▼",68,5,76,20,()=>{areaMenuOpen=!areaMenuOpen;Draw(page);},areaMenuOpen,"영역");
         int x=148;
-        // 탭이 없는 화면(상태이상·모든 수치·방 편집·Git 등)은 그 영역의 첫 탭을 켜 둔다. 옛 헤더가 콘텐츠 하위 화면에서 '게임 콘텐츠'를 켠 것과 같다.
+        // 탭이 없는 화면(모든 수치·방 편집·Git 등)은 그 영역의 첫 탭을 켜 둔다. 옛 헤더가 콘텐츠 하위 화면에서 '게임 콘텐츠'를 켠 것과 같다.
         var lit=pages[(int)page].Tab.caption!=null ? page : FirstPage(area.Value);
         for(int i=0;i<pages.Length;i++)
         {
             var tab=pages[i].Tab;
             if(pages[i].Area!=area || tab.caption==null) continue;
-            var target=(Page)i;
-            Btn(tab.caption,x,5,tab.width,20,()=>Navigate(target),lit==target,tab.id);
+            var target=(Page)i; var open=pages[i].Open;
+            // 전용 화면 탭(Open)은 DraftStore 초안을 다시 잡으므로 도메인 사이를 오가도 미저장 초안이 남는다
+            var button=Btn(tab.caption,x,5,tab.width,20,open ?? (()=>Navigate(target)),lit==target,tab.id);
+            if(open!=null) button.interactable=ProjectContentStore.Authoring;   // 허브 타일과 같다
             x+=tab.width+3;
         }
     }

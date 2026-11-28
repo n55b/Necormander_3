@@ -15,6 +15,7 @@ public sealed partial class RoomWorkshopWindow
         public Action Keys;      // 페이지 전용 키·포인터. Map은 기존 지도 입력 전체
         public Area? Area;       // 소속 작업 영역. null은 첫 화면이다. 헤더는 이 영역의 탭만 보인다
         public (string caption,int width,string id) Tab;   // 헤더 탭(caption이 null이면 탭 없음). id는 검사가 누르는 고정 이름(null이면 caption)
+        public Action Open;      // 탭·허브 타일이 이 화면을 여는 방법(초안 준비 뒤 Navigate). null이면 Navigate만. 있으면 탭은 연결한 기본 작업 공간에서만 누른다
     }
     private PageEntry[] pages;
     private string deskControl;
@@ -44,9 +45,11 @@ public sealed partial class RoomWorkshopWindow
             Reset=()=>{artEntries=null;art=null;nextArt=null;DisposeArt();},Area=Area.Art,Tab=("아트 원본",62,null)};
         pages[(int)Page.Content]     =new PageEntry{Draw=DrawContent,Area=Area.Content,Tab=("게임 콘텐츠",72,null)};
         pages[(int)Page.Status]      =new PageEntry{Draw=DrawStatus,Save=SaveStatus,Draft=()=>statusDraft,Trial=StartContentTrial,Keys=StatusKeys,
-            Reset=()=>{statusDraft=null;statusFocus=null;},Area=Area.Content};
+            Reset=()=>{statusDraft=null;statusFocus=null;},Area=Area.Content,Tab=("상태이상",58,"탭/상태이상"),Open=()=>OpenStatus(null)};
         pages[(int)Page.Home]        =new PageEntry{Draw=DrawHome,Reset=()=>findQuery=""};
-        pages[(int)Page.Items]       =new PageEntry{Draw=DrawItems,Save=SaveItem,Draft=()=>itemDraft,Trial=StartContentTrial,Keys=ItemKeys,Reset=ResetItems,Area=Area.Content};
+        // 게임 콘텐츠 탭은 전용 화면이 있는 도메인만 둔다(허브 타일과 id가 겹치지 않게 "탭/"). 전용 화면이 생기면 Tab·Open을 더한다.
+        pages[(int)Page.Items]       =new PageEntry{Draw=DrawItems,Save=SaveItem,Draft=()=>itemDraft,Trial=StartContentTrial,Keys=ItemKeys,Reset=ResetItems,Area=Area.Content,
+            Tab=("아이템",50,"탭/아이템"),Open=()=>OpenItems(null)};
     }
     private void SaveFloorShortcut(){ if(routeDraft!=null) return; floorSettings.Save(); Say("층 설정을 저장했습니다."); }
     private void ResetParameters(){ dataEntry=null; dataField=null; dataCatalog=null; paramDraft=null; }

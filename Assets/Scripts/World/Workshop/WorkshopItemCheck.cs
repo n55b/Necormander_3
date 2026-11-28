@@ -14,7 +14,7 @@ using Object = UnityEngine.Object;
 
 // 제작실 아이템 화면 검사. WorkshopPlayModeCheck(Editor 어셈블리)가 상태이상 검사 다음에 부른다.
 // DraftStore·ProjectParameters·WorkshopUI 같은 internal 멤버를 쓰므로 런타임 어셈블리에 둔다(WorkshopStatusCheck와 같다).
-// 1~8은 목록·상세, 9~14는 생성·이름·삭제·영구 삭제·복원·표 보기·크게 보기, 15는 시험 지급과 복귀다. 검사가 만든 새 아이템은 지우고 원본 삭제는 복원한다.
+// 1~8은 목록·상세, 9~14는 생성·이름·삭제·영구 삭제·복원·표 보기·크게 보기, 15는 시험 지급과 복귀, 16은 헤더 탭의 도메인 이동이다. 검사가 만든 새 아이템은 지우고 원본 삭제는 복원한다.
 // 모든 변경을 되돌리고 아이템 상세를 연 채로 끝난다(이어지는 UI 해상도 검사가 "Item detail"을 본다).
 public static class WorkshopItemCheck
 {
@@ -253,6 +253,24 @@ public static class WorkshopItemCheck
         Require(Mathf.Abs(((RectTransform)Detail()).anchoredPosition.y-scrolled)<1,"returning restores the detail scroll");
         Require(!DraftStore.Unsaved.Any(),"item check leaves nothing unsaved");
         Debug.Log("[Workshop items] PASS trial loadout, toolbar give and return");
+        // 16. 게임 콘텐츠 헤더 탭: 전용 화면(상태이상·아이템)만 탭이고, 탭으로 도메인을 오가도 미저장 초안이 남는다
+        var tabs=Object.FindObjectsByType<Button>(FindObjectsSortMode.None).Where(b=>b.gameObject.activeInHierarchy && b.name.StartsWith("탭/",StringComparison.Ordinal)).Select(b=>b.name).OrderBy(n=>n,StringComparer.Ordinal).ToArray();
+        Require(tabs.SequenceEqual(new[]{"탭/상태이상","탭/아이템"}),"content header tabs are the dedicated screens: "+string.Join(",",tabs));
+        int stack=cloth.MaxStack;
+        GameObject.Find("maxStack/+").GetComponent<Button>().onClick.Invoke(); yield return Frames();
+        Click("탭/상태이상"); yield return Frames();
+        Require(WorkshopStatusCheck.Find("상태이상/poison")?.gameObject.activeInHierarchy==true && Draft(cloth).Dirty,"status tab opens the status screen and keeps the item draft");
+        Click("상태이상/poison"); yield return Frames();
+        GameObject.Find("poisonTickDamage/+").GetComponent<Button>().onClick.Invoke(); yield return Frames();
+        var status=DraftStore.All.Single(d=>d.entry.source is StatusBalanceSO);
+        Click("탭/아이템"); yield return Frames();
+        Require(GameObject.Find("Item detail")!=null && Draft(cloth).live && Draft(cloth).Dirty && cloth.MaxStack==stack+1,"item tab reopens the same item with its unsaved edit");
+        Require(status.Dirty,"the status draft survives the tab move");
+        capture?.Invoke("16");
+        Click("변경 취소"); yield return Frames();
+        DraftStore.Revert(status);
+        Require(!DraftStore.Unsaved.Any() && cloth.MaxStack==stack,"tab check leaves nothing unsaved");
+        Debug.Log("[Workshop items] PASS content header tabs keep drafts across domains");
     }
     private static string[] Cards()=>Detail().Cast<Transform>().Where(t=>t.name.StartsWith("효과/",StringComparison.Ordinal) && t.GetComponent<Image>()!=null && !t.GetComponent<Button>())
         .OrderBy(t=>-((RectTransform)t).anchoredPosition.y).Select(t=>t.name.Substring(3)).ToArray();

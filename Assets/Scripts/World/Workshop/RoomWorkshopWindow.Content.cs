@@ -38,8 +38,7 @@ public sealed partial class RoomWorkshopWindow
     private static string TileOf(Entry e)=>e.source is ItemSO ? "아이템" : contentTiles.FirstOrDefault(t=>t.group!=null && e.group.StartsWith(t.group,StringComparison.Ordinal)).id ?? "콘텐츠 수치";
     private void OpenTile((string caption,string id,string group,Page open) tile)
     {
-        if(tile.open==Page.Status){ OpenStatus(null); return; }
-        if(tile.open==Page.Items){ OpenItems(null); return; }
+        if(pages[(int)tile.open].Open is Action open){ open(); return; }   // 전용 화면(상태이상·아이템)
         if(tile.open!=Page.Parameters){ Navigate(tile.open); return; }
         // 모든 수치는 이전 항목을 그대로 열지만, 영역 타일이 남긴 영역 필터는 지운다(그대로면 '모든 수치'가 한 영역만 보인다).
         if(tile.group==null && contentTiles.Any(t=>t.group!=null && t.group==dataSearch)){ dataSearch=""; dataPage=0; }
