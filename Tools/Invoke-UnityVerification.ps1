@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [ValidateSet('Baseline', 'Assets', 'Presentation', 'World', 'Dungeon', 'Combat', 'Save', 'Windows', 'Performance', 'Typography', 'UIResolution', 'ArtDirection', 'RenderBudget', 'CombatPolish', 'LevelWorkshop', 'WorkshopPlayMode','ProjectContent')]
+    [ValidateSet('Baseline', 'Assets', 'Presentation', 'World', 'Dungeon', 'Combat', 'Save', 'Windows', 'Performance', 'Typography', 'UIResolution', 'ArtDirection', 'RenderBudget', 'CombatPolish', 'LevelWorkshop', 'WorkshopPlayMode','ProjectContent','BakeRoundTrip')]
     [string[]] $Suite = @('Baseline'),
     [string] $UnityEditor,
     [string] $CompareTo,
@@ -78,9 +78,9 @@ New-Item -ItemType Directory -Path $logs -Force | Out-Null
 $results = [Collections.Generic.List[string]]::new()
 
 function Invoke-EditorCheck {
-    param([string] $Method, [switch] $PlayMode, [switch] $Build, [string[]] $ExtraArgs = @())
+    param([string] $Method, [switch] $PlayMode, [switch] $Build, [string[]] $ExtraArgs = @(), [string] $LogName = $Method)
 
-    $log = Join-Path $logs "$Method.log"
+    $log = Join-Path $logs "$LogName.log"
     $arguments = @('-batchmode', '-projectPath', ('"' + $sandbox + '"'), '-executeMethod', $Method, '-logFile', ('"' + $log + '"'))
     $arguments += $ExtraArgs
     if (-not $PlayMode) { $arguments += '-quit' }
@@ -90,11 +90,11 @@ function Invoke-EditorCheck {
     if (-not $process.WaitForExit(900000)) {
         $process.Kill()
         $process.WaitForExit()
-        $result = "FAIL $Method (timed out)"
+        $result = "FAIL $LogName (timed out)"
     } elseif ($process.ExitCode -ne 0) {
-        $result = "FAIL $Method (exit $($process.ExitCode))"
+        $result = "FAIL $LogName (exit $($process.ExitCode))"
     } else {
-        $result = "PASS $Method"
+        $result = "PASS $LogName"
     }
     $results.Add("$result | $log")
     Write-Host $result
@@ -205,6 +205,23 @@ if ((Want @('ProjectContent'))) {
     Invoke-EditorCheck 'ProjectRoomBakeCheck.Run'
     & (Join-Path $source 'Tools/Verification/Invoke-ProjectRoomTeam.ps1') -Sandbox $sandbox -UnityEditor $UnityEditor -Results $logs
     $results.Add("PASS project content Ctrl+S, save button, two Git checkouts and Windows dungeon | $logs")
+}
+# Bake round trip: edit through the workshop screens, record, bake everything, record again and load the pre-bake save.
+# The bake rewrites assets and DATA in the sandbox, so both are mirrored back from the source afterwards.
+if ((Want @('ProjectContent', 'BakeRoundTrip'))) {
+    $trip = Join-Path $logs 'BakeRoundTrip'
+    New-Item -ItemType Directory -Path $trip -Force | Out-Null
+    $tripArgs = @('-bakeRoundTrip')
+    foreach ($step in @(@('ProjectContentBuild.StartRoomCheck', 'author'), @('ProjectContentBuild.StartRoomCheck', 'before'),
+            @('ProjectBakeRoundTripCheck.Bake', 'bake'), @('ProjectContentBuild.StartRoomCheck', 'after'))) {
+        $log = "BakeRoundTrip-$($step[1])"
+        Invoke-EditorCheck $step[0] -PlayMode:($step[1] -ne 'bake') -ExtraArgs ($tripArgs + @($step[1], ('"' + $trip + '"'))) -LogName $log
+        if ($results[$results.Count-1] -notlike 'PASS*') { break }
+    }
+    foreach ($name in @('Assets', 'DATA')) {
+        & robocopy.exe (Join-Path $source $name) (Join-Path $sandbox $name) /MIR /XJ /R:1 /W:1 /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "Failed to restore $name after the bake round trip (robocopy $LASTEXITCODE)." }
+    }
 }
 if ((Want @('LevelWorkshop'))) {
     Invoke-EditorCheck 'WorkshopRoomImport.VerifySources'

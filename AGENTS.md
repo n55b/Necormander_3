@@ -37,6 +37,7 @@
 
 - 인게임 제작 데이터의 원본은 루트 `DATA`다. 영역·편집 화면·반영 시점은 [DATA 안내](DATA/README.md)에 있다. `ProjectContentStore`는 문서별 병합·복구, `ProjectStructure`는 콘텐츠 문서의 목록 구조(LISTS)·레지스트리 가입(MEMBERS)·삭제 표시(`removed.json`), `ProjectRooms`는 방과 일반 던전 연결, `ProjectContentBuild`는 빌드 검증·포함을 담당한다. 방 프리팹 저장·플레이 시작·빌드 전에 방 문서의 `baseRevision`을 옮기는 자동 재기준은 `ProjectRoomRebase`에 있고 배치 모드에서는 꺼진다. DATA를 원본 에셋에 쓰는 **Tools > DATA 굽기**는 `ProjectDataBake`(창 `ProjectDataBakeWindow`, 방 덮어쓰기·새 방 프리팹 변형은 `ProjectRoomBake`)이고, 새 콘텐츠의 옛 세이브 키 `content_<id>`는 `formerAssetNames`로 해석한다. 그림 원본은 기존 `ARTIST` 경로를 사용한다.
 - `-Suite ProjectContent`는 강제 종료 복구, 두 Git 체크아웃의 지형·전투 웨이브 독립 커밋과 푸시·병합, 실제 에디터 및 Windows 게임 반영, 동일 필드 충돌 해결을 검사한다. 팀 원격 저장소 대신 임시 bare 저장소를 사용한다.
+- `-Suite BakeRoundTrip`(`-Suite ProjectContent`에도 포함)은 제작실 화면으로 상태이상·아이템·방을 고쳐 저장한 뒤 DATA를 전부 굽고, 굽기 전후의 적용 SO 값·레지스트리 목록·같은 시드 던전·새 방 내용과 굽기 전 세이브를 비교한다. 차이는 `Logs/Verification/BakeRoundTrip/differences.txt`, 플레이 단계는 `ProjectBakeRoundTrip`, 굽기 단계는 `ProjectBakeRoundTripCheck`다. 굽기 뒤 격리 복사본의 Assets·DATA를 원본에서 다시 복사한다.
 
 - `-Suite WorkshopPlayMode`는 Unity에서 제작실 바로 실행, 시험 전투·복귀, 플레이어·조명·무대 값 변경, 작업 씬 복원을 확인한다. `-Suite LevelWorkshop`은 이 검사와 제작용 Windows 플레이어의 방 편집·전투·클리어·복귀·저장과 층 시험을 실행한다.
 
